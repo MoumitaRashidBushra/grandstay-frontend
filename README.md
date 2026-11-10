@@ -6,23 +6,15 @@ This is the React + TypeScript frontend for the GrandStay hotel booking and rese
 
 Before you start, make sure you have:
 
-- Node.js 18 or newer
+- Node.js 20.19 or newer, or 22.12 or newer
 - npm 9 or newer
 - A terminal such as PowerShell, Git Bash, or VS Code terminal
 
 ## Setup
 
-From the project root:
+From the repository root:
 
 ```sh
-cd grandstay-frontend
-npm install
-```
-
-If you are starting from the workspace root instead, use:
-
-```sh
-cd h:\internship-clockosoft\grandstay-frontend
 npm install
 ```
 
@@ -46,24 +38,24 @@ npm run dev -- --host
 
 ## Available scripts
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Start the Vite development server |
-| `npm run build` | Type-check and create a production build |
-| `npm run preview` | Preview the production build locally |
-| `npm run lint` | Run ESLint |
-| `npm run lint:fix` | Apply automatic ESLint fixes |
-| `npm run format` | Format project files with Prettier |
-| `npm run format:check` | Check formatting without changing files |
+| Command                | Description                              |
+| ---------------------- | ---------------------------------------- |
+| `npm run dev`          | Start the Vite development server        |
+| `npm run build`        | Type-check and create a production build |
+| `npm run preview`      | Preview the production build locally     |
+| `npm run lint`         | Run ESLint                               |
+| `npm run lint:fix`     | Apply automatic ESLint fixes             |
+| `npm run format`       | Format project files with Prettier       |
+| `npm run format:check` | Check formatting without changing files  |
 
 ## Application routes
 
-| Path | Area |
-| --- | --- |
-| `/` | Home page |
-| `/customer/*` | Customer portal |
-| `/staff/*` | Staff console |
-| Any unmatched path | Not found page |
+| Path               | Area            |
+| ------------------ | --------------- |
+| `/`                | Home page       |
+| `/customer/*`      | Customer portal |
+| `/staff/*`         | Staff console   |
+| Any unmatched path | Not found page  |
 
 ## Project structure
 
