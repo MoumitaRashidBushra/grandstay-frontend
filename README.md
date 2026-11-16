@@ -38,15 +38,17 @@ npm run dev -- --host
 
 ## Available scripts
 
-| Command                | Description                              |
-| ---------------------- | ---------------------------------------- |
-| `npm run dev`          | Start the Vite development server        |
-| `npm run build`        | Type-check and create a production build |
-| `npm run preview`      | Preview the production build locally     |
-| `npm run lint`         | Run ESLint                               |
-| `npm run lint:fix`     | Apply automatic ESLint fixes             |
-| `npm run format`       | Format project files with Prettier       |
-| `npm run format:check` | Check formatting without changing files  |
+| Command                | Description                                      |
+| ---------------------- | ------------------------------------------------ |
+| `npm run dev`          | Start the Vite development server                |
+| `npm run build`        | Type-check and create a production build         |
+| `npm run preview`      | Preview the production build locally             |
+| `npm run lint`         | Run oxlint across the project                   |
+| `npm run lint:fix`     | Apply automatic oxlint fixes                   |
+| `npm run test`         | Run the Vitest suite in CI mode                 |
+| `npm run test:watch`   | Run Vitest in watch mode                        |
+| `npm run format`       | Format project files with Prettier              |
+| `npm run format:check` | Check formatting without changing files         |
 
 ## Application routes
 
@@ -76,21 +78,19 @@ grandstay-frontend/
 └── README.md
 ```
 
-## Production build
+## Validation in CI
 
-To verify the project builds successfully:
-
-```sh
-npm run build
-```
-
-After the build completes, you can preview it with:
+The project is configured for GitHub Actions to validate the frontend with:
 
 ```sh
-npm run preview
+npm run lint
+npm test
 ```
+
+This is the current CI check used for pull requests.
 
 ## Notes
 
 - This frontend is intended to be used with the backend project in the same workspace when API features are connected.
+- The project uses Vite, React 18, TypeScript, React Router, TanStack Query, React Hook Form, Zod, and date-fns.
 - There are no custom environment variables required for the default starter setup, but you can add a `.env.local` file later if the app needs API configuration.
