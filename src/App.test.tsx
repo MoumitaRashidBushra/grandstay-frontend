@@ -7,7 +7,7 @@ describe("App", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /a stay that feels\s*like yours/i,
+        name: /this heading does not exist/i,
       }),
     ).toBeInTheDocument();
   });
