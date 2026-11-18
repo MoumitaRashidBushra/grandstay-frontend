@@ -1,3 +1,7 @@
+# GitHub Actions
+
+[![Frontend CI](https://github.com/MoumitaRashidBushra/grandstay-frontend/actions/workflows/ci.yml/badge.svg)](https://github.com/MoumitaRashidBushra/grandstay-frontend/actions/workflows/ci.yml)
+
 # GrandStay Frontend
 
 This is the React + TypeScript frontend for the GrandStay hotel booking and reservation system. It uses Vite for development and builds, and React Router for the main customer and staff areas.
