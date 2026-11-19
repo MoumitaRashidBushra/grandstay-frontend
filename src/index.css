@@ -27,3 +27,12 @@ body {
   -webkit-text-fill-color: #0f172a !important;
   caret-color: #0f172a;
 }
+/* Hide sidebar scrollbar while keeping menu scrolling enabled */
+.sidebar-menu-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidebar-menu-scroll::-webkit-scrollbar {
+  display: none;
+}
