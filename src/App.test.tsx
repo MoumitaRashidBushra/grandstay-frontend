@@ -4,7 +4,6 @@ import { AuthProvider } from "./context/AuthContext";
 
 describe("App", () => {
   it("renders the GrandStay home page", async () => {
-    debugger;
     // Wrap the app with AuthProvider to provide authentication context.
     render(
       <AuthProvider>
@@ -15,7 +14,7 @@ describe("App", () => {
     // Wait until the lazy-loaded home page heading appears. QA probe.
     expect(
       await screen.findByRole("heading", {
-        name: /a stay that feels\s*like yours/i,
+        name: /a stay that feels\s*like theirs/i,
       }),
     ).toBeInTheDocument();
   });
