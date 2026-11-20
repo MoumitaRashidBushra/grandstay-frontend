@@ -1,8 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import LoginUI from "../components/LoginUI";
+import { useAuth } from "../hooks/useAuth";
 import { useLogin } from "../hooks/useLogin";
 import type { LoginCredentials } from "../types/auth";
 
@@ -13,10 +15,15 @@ const loginSchema = z.object({
 
 function LoginPage() {
   const loginMutation = useLogin();
+  const navigate = useNavigate();
+
+  // Access the function that saves user information and access token.
+  const { loginUser } = useAuth();
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<LoginCredentials>({
     resolver: zodResolver(loginSchema),
@@ -37,9 +44,29 @@ function LoginPage() {
 
   const onSubmit = async (data: LoginCredentials) => {
     try {
+      // Send login credentials to the backend.
       const response = await loginMutation.mutateAsync(data);
 
-      console.log("Login successful:", response);
+      // Save user information and access token in React memory.
+      loginUser(response);
+
+      // Clear the login form after successful authentication.
+      reset();
+
+      // Redirect the user to the dashboard matching their role.
+      switch (response.user.role) {
+        case "ADMIN":
+          navigate("/admin", { replace: true });
+          break;
+
+        case "RECEPTIONIST":
+          navigate("/staff", { replace: true });
+          break;
+
+        case "CUSTOMER":
+          navigate("/customer", { replace: true });
+          break;
+      }
     } catch {
       // The mutation error is surfaced through errorMessage above.
     }
