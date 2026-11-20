@@ -14,7 +14,7 @@ describe("App", () => {
     // Wait until the lazy-loaded home page heading appears. QA probe.
     expect(
       await screen.findByRole("heading", {
-        name: /a stay that feels\s*like yours/i,
+        name: /this heading does not exist/i,
       }),
     ).toBeInTheDocument();
   });
