@@ -4,7 +4,6 @@ import { AuthProvider } from "./context/AuthContext";
 
 describe("App", () => {
   it("renders the GrandStay home page", async () => {
-    debugger
     // Wrap the app with AuthProvider to provide authentication context.
     render(
       <AuthProvider>
