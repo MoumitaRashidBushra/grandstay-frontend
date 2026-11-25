@@ -1,4 +1,11 @@
 import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import axios from "axios";
+import {
   Building2,
   Filter,
   Plus,
@@ -10,84 +17,160 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import StaffAccountDialog from "../../components/admin/StaffAccountDialog";
+import { useAuth } from "../../hooks/useAuth";
+import {
+  createStaff,
+  listStaff,
+  updateStaff,
+  type CreateStaffInput,
+  type StaffAccount,
+  type UpdateStaffInput,
+} from "../../services/staffService";
 
-// Available staff roles in the GrandStay system.
-const staffRoles = ["ADMIN", "RECEPTIONIST"];
+const staffRoles = ["ADMIN", "RECEPTIONIST"] as const;
 
-// Staff overview card information.
-const overviewCards = [
-  {
-    label: "Total Staff",
-    value: "—",
-    icon: Users,
-    iconColor: "text-emerald-700",
-    iconBackground: "bg-emerald-50",
-  },
-  {
-    label: "Administrators",
-    value: "—",
-    icon: ShieldCheck,
-    iconColor: "text-violet-700",
-    iconBackground: "bg-violet-50",
-  },
-  {
-    label: "Receptionists",
-    value: "—",
-    icon: UserRound,
-    iconColor: "text-blue-700",
-    iconBackground: "bg-blue-50",
-  },
-  {
-    label: "Active Accounts",
-    value: "—",
-    icon: UserCheck,
-    iconColor: "text-amber-700",
-    iconBackground: "bg-amber-50",
-  },
-];
+type DialogState =
+  { mode: "create" } | { mode: "edit"; account: StaffAccount } | null;
 
 function StaffManagementPage() {
-  // Store staff search and filter values.
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [dialog, setDialog] = useState<DialogState>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
-  // Reset all filter values.
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () => setDebouncedSearch(search.trim()),
+      300,
+    );
+
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  const staffQuery = useQuery({
+    queryKey: ["admin-staff", debouncedSearch, role],
+    queryFn: () =>
+      listStaff({
+        search: debouncedSearch,
+        role: role === "ADMIN" || role === "RECEPTIONIST" ? role : "",
+      }),
+    placeholderData: keepPreviousData,
+  });
+
+  const refreshStaff = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["admin-staff"] });
+  };
+
+  const createMutation = useMutation({
+    mutationFn: (input: CreateStaffInput) => createStaff(input),
+    onSuccess: async () => {
+      await refreshStaff();
+      setDialog(null);
+      setFormError(null);
+    },
+    onError: (error: unknown) => {
+      setFormError(apiErrorMessage(error, "Could not create this account."));
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (variables: { id: string; input: UpdateStaffInput }) =>
+      updateStaff(variables.id, variables.input),
+    onSuccess: async () => {
+      await refreshStaff();
+      setDialog(null);
+      setFormError(null);
+      setPendingId(null);
+    },
+    onError: (error: unknown) => {
+      setFormError(apiErrorMessage(error, "Could not update this account."));
+      setPendingId(null);
+    },
+  });
+
+  const summary = staffQuery.data?.summary;
+  const overviewCards = [
+    {
+      label: "Total Staff",
+      value: summary ? String(summary.total) : "—",
+      icon: Users,
+      iconColor: "text-emerald-700",
+      iconBackground: "bg-emerald-50",
+    },
+    {
+      label: "Administrators",
+      value: summary ? String(summary.admins) : "—",
+      icon: ShieldCheck,
+      iconColor: "text-violet-700",
+      iconBackground: "bg-violet-50",
+    },
+    {
+      label: "Receptionists",
+      value: summary ? String(summary.receptionists) : "—",
+      icon: UserRound,
+      iconColor: "text-blue-700",
+      iconBackground: "bg-blue-50",
+    },
+    {
+      label: "Active Accounts",
+      value: summary ? String(summary.active) : "—",
+      icon: UserCheck,
+      iconColor: "text-amber-700",
+      iconBackground: "bg-amber-50",
+    },
+  ];
+
   const clearFilters = () => {
     setSearch("");
     setRole("");
   };
 
+  const changeStatus = (account: StaffAccount) => {
+    setFormError(null);
+    setPendingId(account.id);
+    updateMutation.mutate({
+      id: account.id,
+      input: { isActive: !account.isActive },
+    });
+  };
+
+  const staff = staffQuery.data?.staff ?? [];
+
   return (
     <div className="mx-auto max-w-7xl space-y-7">
-      {/* Page heading */}
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <p className="text-sm font-medium text-emerald-700">
             Hotel Management
           </p>
-
           <h1 className="mt-1 font-serif text-3xl font-bold text-emerald-950">
             Staff Management
           </h1>
-
           <p className="mt-2 text-sm text-slate-500">
-            Manage your hotel team, staff roles, and account information.
+            Create, edit, activate, and deactivate staff accounts and assign
+            roles.
           </p>
         </div>
 
         <button
           type="button"
-          disabled
-          title="Staff creation will be available after API integration"
-          className="flex cursor-not-allowed items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-500 opacity-75 shadow-sm sm:self-auto"
+          onClick={() => {
+            setFormError(null);
+            setDialog({ mode: "create" });
+          }}
+          className="flex items-center gap-2 self-start rounded-xl bg-emerald-700 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-emerald-800 sm:self-auto"
         >
-          <Plus size={18} className="text-emerald-700" />
+          <Plus size={18} />
           Add Staff Member
         </button>
       </section>
 
-      {/* Staff overview */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {overviewCards.map((item) => {
           const Icon = item.icon;
@@ -95,16 +178,14 @@ function StaffManagementPage() {
           return (
             <div
               key={item.label}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
             >
               <div className="flex items-center justify-between">
                 <p className="text-sm text-slate-500">{item.label}</p>
-
                 <div className={`rounded-xl p-2.5 ${item.iconBackground}`}>
                   <Icon size={20} className={item.iconColor} />
                 </div>
               </div>
-
               <p className="mt-4 text-2xl font-bold text-emerald-950">
                 {item.value}
               </p>
@@ -113,42 +194,34 @@ function StaffManagementPage() {
         })}
       </section>
 
-      {/* Staff directory heading */}
       <section className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-lg font-semibold text-emerald-950">Your Team</h2>
-
           <p className="mt-1 text-xs text-slate-500">
             View and manage staff members across your hotel.
           </p>
         </div>
-
         <div className="flex items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-3 py-2">
           <Building2 size={17} className="text-emerald-700" />
-
           <span className="text-xs font-medium text-slate-600">
             GrandStay Hotel
           </span>
         </div>
       </section>
 
-      {/* Staff filters */}
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
             <div className="rounded-xl bg-emerald-50 p-3 text-emerald-800">
               <Filter size={20} />
             </div>
-
             <div>
               <h2 className="font-semibold text-emerald-950">Filter Staff</h2>
-
               <p className="text-xs text-slate-500">
                 Find team members using different criteria.
               </p>
             </div>
           </div>
-
           <button
             type="button"
             onClick={clearFilters}
@@ -160,7 +233,6 @@ function StaffManagementPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          {/* Search staff */}
           <div>
             <label
               htmlFor="staff-search"
@@ -168,13 +240,11 @@ function StaffManagementPage() {
             >
               Search Staff
             </label>
-
             <div className="relative">
               <Search
                 size={18}
                 className="absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
               />
-
               <input
                 id="staff-search"
                 type="text"
@@ -185,8 +255,6 @@ function StaffManagementPage() {
               />
             </div>
           </div>
-
-          {/* Filter by role */}
           <div>
             <label
               htmlFor="staff-role"
@@ -194,7 +262,6 @@ function StaffManagementPage() {
             >
               Staff Role
             </label>
-
             <select
               id="staff-role"
               value={role}
@@ -202,10 +269,9 @@ function StaffManagementPage() {
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
             >
               <option value="">All Roles</option>
-
               {staffRoles.map((item) => (
                 <option key={item} value={item}>
-                  {item.replace("_", " ")}
+                  {item === "ADMIN" ? "Admin" : "Receptionist"}
                 </option>
               ))}
             </select>
@@ -213,25 +279,40 @@ function StaffManagementPage() {
         </div>
       </section>
 
-      {/* Staff directory table */}
+      {staffQuery.isError ? (
+        <p
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
+          {apiErrorMessage(staffQuery.error, "Could not load staff accounts.")}
+        </p>
+      ) : null}
+
+      {formError && !dialog ? (
+        <p
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
+          {formError}
+        </p>
+      ) : null}
+
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col justify-between gap-3 border-b border-slate-200 px-5 py-5 sm:flex-row sm:items-center sm:px-6">
           <div>
             <h2 className="font-semibold text-emerald-950">Staff Directory</h2>
-
             <p className="mt-1 text-xs text-slate-500">
               Manage staff profiles and access information.
             </p>
           </div>
-
           <span className="flex items-center gap-2 self-start rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
             <Users size={14} />
-            Team Members
+            {staff.length} shown
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-175 text-left text-sm">
+          <table className="w-full min-w-[44rem] text-left text-sm">
             <thead className="bg-slate-50 text-xs text-slate-500">
               <tr>
                 <th className="px-5 py-4 font-semibold">Staff Member</th>
@@ -241,54 +322,162 @@ function StaffManagementPage() {
                 <th className="px-5 py-4 text-center font-semibold">Actions</th>
               </tr>
             </thead>
-
             <tbody>
-              <tr>
-                <td colSpan={5} className="px-5 py-16 text-center">
-                  <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-50">
-                    <UserCog size={27} className="text-slate-300" />
-                  </div>
+              {staffQuery.isLoading ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-5 py-16 text-center text-sm text-slate-500"
+                  >
+                    Loading staff accounts...
+                  </td>
+                </tr>
+              ) : staff.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-5 py-16 text-center">
+                    <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-50">
+                      <UserCog size={27} className="text-slate-300" />
+                    </div>
+                    <p className="mt-4 font-medium text-slate-700">
+                      No staff members found
+                    </p>
+                    <p className="mx-auto mt-1 max-w-sm text-xs leading-5 text-slate-400">
+                      Try another search, or add a staff member.
+                    </p>
+                  </td>
+                </tr>
+              ) : (
+                staff.map((member) => {
+                  const isSelf = member.id === user?.id;
 
-                  <p className="mt-4 font-medium text-slate-700">
-                    No staff members available
-                  </p>
-
-                  <p className="mx-auto mt-1 max-w-sm text-xs leading-5 text-slate-400">
-                    Staff information will appear here when the backend API is
-                    connected.
-                  </p>
-                </td>
-              </tr>
+                  return (
+                    <tr key={member.id} className="border-t border-slate-100">
+                      <td className="px-5 py-4">
+                        <p className="font-medium text-emerald-950">
+                          {member.fullName}
+                        </p>
+                        <p className="mt-0.5 text-xs text-slate-400">
+                          {member.mobile ?? "No mobile"}
+                        </p>
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {member.email}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                            member.role === "ADMIN"
+                              ? "bg-violet-50 text-violet-700"
+                              : "bg-blue-50 text-blue-700"
+                          }`}
+                        >
+                          {member.role === "ADMIN" ? "Admin" : "Receptionist"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                            member.isActive
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-slate-100 text-slate-500"
+                          }`}
+                        >
+                          {member.isActive ? "Active" : "Inactive"}
+                        </span>
+                        {member.mustResetPw ? (
+                          <p className="mt-1 text-xs text-amber-700">
+                            Password reset required
+                          </p>
+                        ) : null}
+                      </td>
+                      <td className="px-5 py-4">
+                        <div className="flex justify-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormError(null);
+                              setDialog({ mode: "edit", account: member });
+                            }}
+                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isSelf || pendingId === member.id}
+                            title={
+                              isSelf
+                                ? "You cannot change your own account status"
+                                : undefined
+                            }
+                            onClick={() => changeStatus(member)}
+                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {member.isActive ? "Deactivate" : "Activate"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
-
-        <div className="border-t border-slate-100 px-5 py-3">
-          <p className="text-xs text-slate-400">
-            Staff information will be updated through the backend API.
-          </p>
-        </div>
       </section>
 
-      {/* Staff management information */}
-      <section className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-5">
-        <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-700">
-          <ShieldCheck size={20} />
-        </div>
+      {dialog ? (
+        <StaffAccountDialog
+          key={dialog.mode === "edit" ? dialog.account.id : "create"}
+          mode={dialog.mode}
+          account={dialog.mode === "edit" ? dialog.account : undefined}
+          currentUserId={user?.id}
+          isSubmitting={createMutation.isPending || updateMutation.isPending}
+          errorMessage={formError}
+          onClose={() => {
+            if (!createMutation.isPending && !updateMutation.isPending) {
+              setDialog(null);
+              setFormError(null);
+            }
+          }}
+          onCreate={(input) => {
+            setFormError(null);
+            createMutation.mutate(input);
+          }}
+          onUpdate={(input) => {
+            if (dialog.mode !== "edit") {
+              return;
+            }
 
-        <div>
-          <h3 className="text-sm font-semibold text-emerald-950">
-            Staff Access Management
-          </h3>
-
-          <p className="mt-1 text-xs leading-5 text-slate-500">
-            Staff permissions are managed according to their assigned system
-            roles. Only authorized administrators should manage staff access.
-          </p>
-        </div>
-      </section>
+            setFormError(null);
+            updateMutation.mutate({ id: dialog.account.id, input });
+          }}
+        />
+      ) : null}
     </div>
   );
+}
+
+function apiErrorMessage(error: unknown, fallback: string): string {
+  if (!axios.isAxiosError(error)) {
+    return fallback;
+  }
+
+  const message = error.response?.data?.message;
+
+  if (Array.isArray(message)) {
+    return message.join(" ");
+  }
+
+  if (typeof message === "string") {
+    return message;
+  }
+
+  if (error.response?.status === 403) {
+    return "You do not have permission to manage this account.";
+  }
+
+  return fallback;
 }
 
 export default StaffManagementPage;
