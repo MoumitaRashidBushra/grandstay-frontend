@@ -1,37 +1,54 @@
-import { ChevronDown, House, LogOut, UserRound } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { ChevronDown, House, LogOut, Menu, UserRound, X } from "lucide-react";
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { logoutUser } from "../services/authService";
+import { useLogout } from "../hooks/useLogout";
 
 export default function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  const { handleLogout, isLoggingOut } = useLogout();
+  const location = useLocation();
 
-  // Log out from the backend and clear the frontend session.
-  const handleLogout = async () => {
-    try {
-      // Ask the backend to revoke the refresh token.
-      await logoutUser();
-    } catch (error) {
-      // Continue clearing the local session even if the API request fails.
-      console.error("Logout request failed:", error);
-    } finally {
-      // Clear the user and access token from React Context.
-      logout();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-      // Redirect the user to the login page.
-      navigate("/login", { replace: true });
-    }
+  // Close the mobile menu after selecting a navigation link.
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
+
+  // Check whether a navigation link matches the current page.
+  const isHomeActive =
+    location.pathname === "/" && location.hash !== "#booking";
+
+  const navLinkClass = (isActive: boolean) =>
+    `transition hover:text-emerald-800 ${
+      isActive ? "font-semibold text-emerald-950" : "text-slate-700"
+    }`;
+
+  // Show the portal allowed for the authenticated user's role.
+  const portalLink = (() => {
+    if (!isAuthenticated || !user) return null;
+
+    if (user.role === "ADMIN") {
+      return { to: "/admin", label: "Admin portal" };
+    }
+
+    if (user.role === "RECEPTIONIST") {
+      return { to: "/staff", label: "Staff portal" };
+    }
+
+    return { to: "/customer", label: "Customer portal" };
+  })();
 
   return (
     <nav
       aria-label="Main navigation"
-      className="fixed left-1/2 top-4 z-50 mx-auto flex w-[calc(100%-2rem)] max-w-330 -translate-x-1/2 items-center justify-between rounded-3xl border border-white/60 bg-white/90 px-5 py-2 shadow-lg backdrop-blur-md sm:px-8 sm:py-2.5"
+      className="fixed left-1/2 top-4 z-50 mx-auto flex w-[calc(100%-2rem)] max-w-330 -translate-x-1/2 flex-wrap items-center justify-between rounded-3xl border border-white/60 bg-white/90 px-5 py-2 shadow-lg backdrop-blur-md sm:px-8 sm:py-2.5"
     >
       {/* GrandStay logo */}
       <Link
         to="/"
+        onClick={closeMobileMenu}
         className="flex items-center gap-2 text-xl font-bold text-emerald-950 sm:text-2xl"
       >
         <span className="flex size-9 items-center justify-center text-emerald-900 sm:size-10">
@@ -40,69 +57,134 @@ export default function Navbar() {
         <span className="font-serif">GrandStay</span>
       </Link>
 
-      {/* Public and role-based navigation links */}
-      <div className="hidden items-center gap-7 text-[15px] font-medium text-slate-700 lg:flex xl:gap-9">
+      {/* Desktop navigation links */}
+      <div className="hidden items-center gap-7 text-[15px] font-medium lg:flex xl:gap-9">
         <Link
           to="/"
-          className="relative inline-flex items-center py-1 text-emerald-950"
+          aria-current={isHomeActive ? "page" : undefined}
+          className={`relative inline-flex items-center py-1 ${navLinkClass(isHomeActive)}`}
         >
           Home
-          <span
-            aria-hidden="true"
-            className="absolute inset-x-0 bottom-0 h-0.5 bg-emerald-900"
-          />
+          {isHomeActive && (
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-0 bottom-0 h-0.5 bg-emerald-900"
+            />
+          )}
         </Link>
 
-        <a
-          href="#booking"
-          className="flex items-center gap-1 transition hover:text-emerald-800"
+        <Link
+          to="/#booking"
+          className={navLinkClass(location.hash === "#booking")}
         >
-          Rooms
-          <ChevronDown size={16} />
-        </a>
+          <span className="flex items-center gap-1">
+            Rooms
+            <ChevronDown aria-hidden="true" size={16} />
+          </span>
+        </Link>
 
-        <a href="#about" className="transition hover:text-emerald-800">
+        <Link to="/#about" className={navLinkClass(location.hash === "#about")}>
           About
-        </a>
+        </Link>
 
-        {/* Show only the portal allowed for the logged-in user's role. */}
-        {isAuthenticated && user?.role === "ADMIN" && (
-          <Link to="/admin" className="transition hover:text-emerald-800">
-            Admin portal
-          </Link>
-        )}
-
-        {isAuthenticated && user?.role === "RECEPTIONIST" && (
-          <Link to="/staff" className="transition hover:text-emerald-800">
-            Staff portal
-          </Link>
-        )}
-
-        {isAuthenticated && user?.role === "CUSTOMER" && (
-          <Link to="/customer" className="transition hover:text-emerald-800">
-            Customer portal
+        {portalLink && (
+          <Link
+            to={portalLink.to}
+            className={navLinkClass(
+              location.pathname.startsWith(portalLink.to),
+            )}
+          >
+            {portalLink.label}
           </Link>
         )}
       </div>
 
-      {/* Show Login or Logout depending on authentication status. */}
-      {isAuthenticated ? (
+      {/* Login or Logout button */}
+      <div className="flex items-center gap-2">
+        {isAuthenticated ? (
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            aria-busy={isLoggingOut}
+            className="flex items-center gap-2 rounded-full bg-emerald-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60 sm:px-5 sm:text-sm"
+          >
+            <LogOut aria-hidden="true" size={18} />
+            {isLoggingOut ? "Logging out..." : "Logout"}
+          </button>
+        ) : (
+          <Link
+            to="/login"
+            state={{ from: location }}
+            onClick={closeMobileMenu}
+            className="flex items-center gap-2 rounded-full bg-emerald-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800 sm:px-5 sm:text-sm"
+          >
+            <UserRound aria-hidden="true" size={20} />
+            Login
+          </Link>
+        )}
+
+        {/* Mobile menu toggle */}
         <button
           type="button"
-          onClick={handleLogout}
-          className="flex items-center gap-2 rounded-full bg-emerald-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800 sm:px-5 sm:text-sm"
+          onClick={() => setIsMobileMenuOpen((previous) => !previous)}
+          aria-label={
+            isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"
+          }
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="mobile-navigation"
+          className="flex size-10 items-center justify-center rounded-full text-emerald-950 transition hover:bg-emerald-50 lg:hidden"
         >
-          <LogOut size={18} />
-          Logout
+          {isMobileMenuOpen ? (
+            <X aria-hidden="true" size={22} />
+          ) : (
+            <Menu aria-hidden="true" size={22} />
+          )}
         </button>
-      ) : (
-        <Link
-          to="/login"
-          className="flex items-center gap-2 rounded-full bg-emerald-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800 sm:px-5 sm:text-sm"
+      </div>
+
+      {/* Responsive mobile navigation */}
+      {isMobileMenuOpen && (
+        <div
+          id="mobile-navigation"
+          className="flex w-full flex-col gap-4 border-t border-slate-200 px-2 pb-3 pt-4 text-sm font-medium lg:hidden"
         >
-          <UserRound size={20} />
-          Login
-        </Link>
+          <Link
+            to="/"
+            onClick={closeMobileMenu}
+            className={navLinkClass(isHomeActive)}
+          >
+            Home
+          </Link>
+
+          <Link
+            to="/#booking"
+            onClick={closeMobileMenu}
+            className={navLinkClass(location.hash === "#booking")}
+          >
+            Rooms
+          </Link>
+
+          <Link
+            to="/#about"
+            onClick={closeMobileMenu}
+            className={navLinkClass(location.hash === "#about")}
+          >
+            About
+          </Link>
+
+          {portalLink && (
+            <Link
+              to={portalLink.to}
+              onClick={closeMobileMenu}
+              className={navLinkClass(
+                location.pathname.startsWith(portalLink.to),
+              )}
+            >
+              {portalLink.label}
+            </Link>
+          )}
+        </div>
       )}
     </nav>
   );

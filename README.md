@@ -1,100 +1,165 @@
-# GitHub Actions
+# GrandStay Frontend
 
 [![Frontend CI](https://github.com/MoumitaRashidBushra/grandstay-frontend/actions/workflows/ci.yml/badge.svg)](https://github.com/MoumitaRashidBushra/grandstay-frontend/actions/workflows/ci.yml)
 
-# GrandStay Frontend
-
-This is the React + TypeScript frontend for the GrandStay hotel booking and reservation system. It uses Vite for development and builds, and React Router for the main customer and staff areas.
+The frontend application for the **GrandStay Hotel Booking & Reservation Management System**. It is built with React 18, TypeScript, and Vite, with separate interfaces for customers, receptionists, and administrators.
 
 ## Prerequisites
 
-Before you start, make sure you have:
+Before getting started, make sure you have:
 
-- Node.js 20.19 or newer, or 22.12 or newer
-- npm 9 or newer
-- A terminal such as PowerShell, Git Bash, or VS Code terminal
+- Node.js 20.19+ or 22.12+
+- npm 9+
+- Git
+- A terminal such as PowerShell, Git Bash, or the VS Code terminal
 
-## Setup
+## Getting Started
 
-From the repository root:
+### 1. Clone the repository
 
-```sh
+```bash
+git clone https://github.com/MoumitaRashidBushra/grandstay-frontend.git
+cd grandstay-frontend
+```
+
+### 2. Install dependencies
+
+```bash
 npm install
 ```
 
-## Run the app locally
+### 3. Configure environment variables
 
-```sh
+Create a `.env.local` file in the project root and add:
+
+```env
+VITE_API_BASE_URL=http://localhost:3000/api/v1
+```
+
+The API base URL should point to the running GrandStay backend.
+
+An example configuration is available in `.env.example`.
+
+### 4. Start the development server
+
+```bash
 npm run dev
 ```
 
-Then open the local URL shown in the terminal, typically:
+Open the local URL displayed in the terminal, typically:
 
 ```text
 http://localhost:5173
 ```
 
-If you want Vite to accept requests from another device or network host, run:
+To allow access from another device on your local network:
 
-```sh
+```bash
 npm run dev -- --host
 ```
 
-## Available scripts
+## Available Scripts
 
-| Command                | Description                                      |
-| ---------------------- | ------------------------------------------------ |
-| `npm run dev`          | Start the Vite development server                |
-| `npm run build`        | Type-check and create a production build         |
-| `npm run preview`      | Preview the production build locally             |
-| `npm run lint`         | Run oxlint across the project                   |
-| `npm run lint:fix`     | Apply automatic oxlint fixes                   |
-| `npm run test`         | Run the Vitest suite in CI mode                 |
-| `npm run test:watch`   | Run Vitest in watch mode                        |
-| `npm run format`       | Format project files with Prettier              |
-| `npm run format:check` | Check formatting without changing files         |
+| Command                | Description                                         |
+| ---------------------- | --------------------------------------------------- |
+| `npm run dev`          | Start the Vite development server                   |
+| `npm run build`        | Run TypeScript checks and create a production build |
+| `npm run preview`      | Preview the production build locally                |
+| `npm run lint`         | Run ESLint                                          |
+| `npm run lint:fix`     | Automatically fix supported ESLint issues           |
+| `npm run test`         | Run Vitest tests with coverage                      |
+| `npm run test:watch`   | Run Vitest in watch mode                            |
+| `npm run format`       | Format project files with Prettier                  |
+| `npm run format:check` | Check formatting without modifying files            |
 
-## Application routes
+## Application Routes
 
-| Path               | Area            |
-| ------------------ | --------------- |
-| `/`                | Home page       |
-| `/customer/*`      | Customer portal |
-| `/staff/*`         | Staff console   |
-| Any unmatched path | Not found page  |
+| Route            | Description            | Access              |
+| ---------------- | ---------------------- | ------------------- |
+| `/`              | Home page              | Public              |
+| `/login`         | Login page             | Public              |
+| `/rooms`         | Browse available rooms | Public              |
+| `/no-access`     | Access denied page     | Public              |
+| `/customer/*`    | Customer portal        | CUSTOMER            |
+| `/staff/*`       | Staff console          | ADMIN, RECEPTIONIST |
+| `/admin/*`       | Administration pages   | ADMIN               |
+| Unmatched routes | Not found page         | Public              |
 
-## Project structure
+The application uses role-based route protection to restrict access to authenticated users according to their assigned roles.
+
+## Project Structure
 
 ```text
 grandstay-frontend/
 ├── public/
 ├── src/
+│   ├── assets/
+│   ├── components/
+│   ├── context/
+│   ├── hooks/
+│   ├── layouts/
 │   ├── pages/
+│   │   ├── admin/
+│   │   ├── customer/
+│   │   └── staff/
 │   ├── routes/
-│   ├── App.css
-│   ├── App.tsx
-│   ├── index.css
-│   └── main.tsx
-├── index.html
+│   ├── services/
+│   ├── test/
+│   ├── types/
+│   └── utils/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── .env.example
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts
 └── README.md
 ```
 
+## Technology Stack
+
+- **Frontend:** React 18, TypeScript, Vite
+- **Routing:** React Router
+- **Styling:** Tailwind CSS 4
+- **Server state:** TanStack Query
+- **Forms and validation:** React Hook Form, Zod
+- **HTTP client:** Axios
+- **Date utilities:** date-fns
+- **Icons:** Lucide React
+- **Testing:** Vitest, React Testing Library, jsdom
+- **Code quality:** ESLint, Prettier
+
+## Backend Integration
+
+The frontend communicates with the GrandStay backend through the configured API base URL.
+
+Make sure the backend is running and that `VITE_API_BASE_URL` points to its API endpoint before testing API-dependent features.
+
 ## Validation in CI
 
-The project is configured for GitHub Actions to validate the frontend with:
+GitHub Actions runs the following checks on pull requests targeting `main` or `master`:
 
-```sh
+```bash
+npm ci
+npm run format:check
 npm run lint
+npm run build
 npm test
 ```
 
-This is the current CI check used for pull requests.
+The Vitest coverage gate currently requires:
 
-## Notes
+- 15% statement coverage
+- 5% branch coverage
+- 7% function coverage
+- 15% line coverage
 
-- This frontend is intended to be used with the backend project in the same workspace when API features are connected.
-- The project uses Vite, React 18, TypeScript, React Router, TanStack Query, React Hook Form, Zod, and date-fns.
-- There are no custom environment variables required for the default starter setup, but you can add a `.env.local` file later if the app needs API configuration.
+These are baseline thresholds and should increase as additional feature tests are introduced.
+
+## Development Notes
+
+- Follow the project's branch and pull request workflow when contributing.
+- Keep customer, staff, and admin functionality separated according to their access permissions.
+- Do not commit `.env.local` or other files containing local secrets.
+- Keep `.env.example` updated whenever required environment variables change.

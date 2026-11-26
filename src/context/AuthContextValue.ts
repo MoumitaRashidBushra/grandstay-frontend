@@ -29,7 +29,7 @@ export interface AuthContextType {
   finishInitialization: () => void;
 }
 
-// Create the authentication context with undefined as the default value.
+// Create the authentication context.
 // AuthProvider will provide the actual authentication data.
 export const AuthContext = createContext<AuthContextType | undefined>(
   undefined,

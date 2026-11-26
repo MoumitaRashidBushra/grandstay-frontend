@@ -1,5 +1,7 @@
-import { CalendarDays, Filter, Search, X } from "lucide-react";
+import { CalendarDays, Filter, Search } from "lucide-react";
 import { useState } from "react";
+import FilterPanel from "../../components/FilterPanel";
+import PageHeader from "../../components/PageHeader";
 
 // Available reservation statuses.
 const reservationStatuses = [
@@ -33,25 +35,17 @@ function ReservationsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8">
-      {/* Page heading */}
-      <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <p className="text-sm font-medium text-emerald-700">
-            Hotel Management
-          </p>
-          <h1 className="mt-1 font-serif text-3xl font-bold text-emerald-950">
-            Reservations
-          </h1>
-          <p className="mt-2 text-sm text-slate-500">
-            Manage and monitor hotel guest reservations.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
-          <CalendarDays size={18} className="text-emerald-700" />
-          Reservation Management
-        </div>
-      </section>
+      <PageHeader
+        eyebrow="Hotel Management"
+        title="Reservations"
+        description="Manage and monitor hotel guest reservations."
+        action={
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+            <CalendarDays size={18} className="text-emerald-700" />
+            Reservation Management
+          </div>
+        }
+      />
 
       {/* Reservation summary cards */}
       <section>
@@ -86,32 +80,12 @@ function ReservationsPage() {
       </section>
 
       {/* Reservation filters */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-emerald-50 p-3 text-emerald-800">
-              <Filter size={21} />
-            </div>
-            <div>
-              <h2 className="font-semibold text-emerald-950">
-                Filter Reservations
-              </h2>
-              <p className="text-xs text-slate-500">
-                Find reservations using different criteria.
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="flex items-center gap-2 self-start rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 sm:self-auto"
-          >
-            <X size={16} />
-            Clear Filters
-          </button>
-        </div>
-
+      <FilterPanel
+        title="Filter Reservations"
+        description="Find reservations using different criteria."
+        icon={Filter}
+        onClear={clearFilters}
+      >
         <div className="space-y-5">
           {/* Search field */}
           <div>
@@ -236,7 +210,7 @@ function ReservationsPage() {
             </div>
           </div>
         </div>
-      </section>
+      </FilterPanel>
 
       {/* Reservation table */}
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">

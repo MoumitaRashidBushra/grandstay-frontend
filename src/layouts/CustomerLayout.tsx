@@ -11,10 +11,10 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 
 import { useAuth } from "../hooks/useAuth";
-import { logoutUser } from "../services/authService";
+import { useLogout } from "../hooks/useLogout";
 
 // Customer sidebar navigation items.
 const menuItems = [
@@ -48,26 +48,9 @@ const menuItems = [
 
 function CustomerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  // Call backend logout API and clear local authentication.
-  const handleLogout = async () => {
-    if (isLoggingOut) return;
-
-    setIsLoggingOut(true);
-
-    try {
-      await logoutUser();
-    } catch (error) {
-      console.error("Logout API failed:", error);
-    } finally {
-      logout();
-      navigate("/login", { replace: true });
-    }
-  };
+  const { user } = useAuth();
+  const { handleLogout, isLoggingOut } = useLogout();
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
@@ -151,8 +134,8 @@ function CustomerLayout() {
       {/* Main Content */}
       <div className="min-h-screen lg:ml-72">
         {/* Topbar */}
-        <header className="sticky top-0 z-30 flex min-h-20 items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur sm:px-8">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-30 flex min-h-20 items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-3 py-4 backdrop-blur sm:px-8">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             {/* Mobile sidebar toggle */}
             <button
               type="button"
@@ -163,25 +146,25 @@ function CustomerLayout() {
               <Menu size={22} />
             </button>
 
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-slate-500">Customer Portal</p>
-              <h1 className="text-sm font-semibold text-slate-800 sm:text-base">
+              <h1 className="truncate text-sm font-semibold text-slate-800 sm:text-base">
                 GrandStay Hotel
               </h1>
             </div>
           </div>
 
           {/* Customer information and actions */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-4">
             <button
               type="button"
-              className="rounded-xl border border-slate-200 p-2.5 text-slate-600 transition hover:bg-slate-50"
+              className="hidden rounded-xl border border-slate-200 p-2.5 text-slate-600 transition hover:bg-slate-50 sm:block"
               aria-label="Notifications"
             >
               <Bell size={19} />
             </button>
 
-            <div className="hidden items-center gap-3 border-l border-slate-200 pl-4 sm:flex">
+            <div className="hidden min-w-0 items-center gap-3 border-l border-slate-200 pl-4 md:flex">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 font-semibold text-emerald-900">
                 <UserRound size={20} />
               </div>
@@ -201,10 +184,13 @@ function CustomerLayout() {
               type="button"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
+              aria-label={isLoggingOut ? "Logging out" : "Logout"}
+              className="flex items-center gap-2 rounded-lg bg-red-50 p-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
             >
               <LogOut size={18} />
-              <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
+              <span className="hidden sm:inline">
+                {isLoggingOut ? "Logging out..." : "Logout"}
+              </span>
             </button>
           </div>
         </header>

@@ -6,9 +6,10 @@ import {
   Filter,
   Search,
   Wrench,
-  X,
 } from "lucide-react";
 import { useState } from "react";
+import FilterPanel from "../../components/FilterPanel";
+import PageHeader from "../../components/PageHeader";
 
 // Available room statuses.
 const roomStatuses = ["OCCUPIED", "AVAILABLE", "MAINTENANCE", "RETIRED"];
@@ -59,32 +60,22 @@ function RoomsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8">
-      {/* Page heading */}
-      <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <p className="text-sm font-medium text-emerald-700">
-            Hotel Management
-          </p>
-
-          <h1 className="mt-1 font-serif text-3xl font-bold text-emerald-950">
-            Room Management
-          </h1>
-
-          <p className="mt-2 text-sm text-slate-500">
-            Manage hotel rooms, monitor availability, and track room conditions.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          disabled
-          title="Room creation will be available after API integration"
-          className="flex cursor-not-allowed items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-500 opacity-75 shadow-sm sm:self-auto"
-        >
-          <BedDouble size={18} className="text-emerald-700" />
-          Add New Room
-        </button>
-      </section>
+      <PageHeader
+        eyebrow="Hotel Management"
+        title="Room Management"
+        description="Manage hotel rooms, monitor availability, and track room conditions."
+        action={
+          <button
+            type="button"
+            disabled
+            title="Room creation will be available after API integration"
+            className="flex cursor-not-allowed items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-500 opacity-75 shadow-sm sm:self-auto"
+          >
+            <BedDouble size={18} className="text-emerald-700" />
+            Add New Room
+          </button>
+        }
+      />
 
       {/* Room summary cards */}
       <section>
@@ -124,32 +115,12 @@ function RoomsPage() {
       </section>
 
       {/* Room filters */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-emerald-50 p-3 text-emerald-800">
-              <Filter size={21} />
-            </div>
-
-            <div>
-              <h2 className="font-semibold text-emerald-950">Filter Rooms</h2>
-
-              <p className="text-xs text-slate-500">
-                Find rooms using different criteria.
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="flex items-center gap-2 self-start rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 sm:self-auto"
-          >
-            <X size={16} />
-            Clear Filters
-          </button>
-        </div>
-
+      <FilterPanel
+        title="Filter Rooms"
+        description="Find rooms using different criteria."
+        icon={Filter}
+        onClear={clearFilters}
+      >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {/* Search field */}
           <div className="sm:col-span-2 lg:col-span-1">
@@ -227,7 +198,7 @@ function RoomsPage() {
             </select>
           </div>
         </div>
-      </section>
+      </FilterPanel>
 
       {/* Room inventory table */}
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
