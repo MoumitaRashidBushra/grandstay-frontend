@@ -44,13 +44,17 @@ export const refreshAccessToken = async (): Promise<RefreshResponse> => {
 };
 
 // Fetch the currently authenticated user's profile from the backend.
-// Pass the access token explicitly during initial session restoration.
+// Bypass the API interceptor because auth state has not stored this token yet.
 export const getCurrentUser = async (token: string): Promise<AuthUser> => {
-  const response = await api.get<AuthUser>("/me", {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const response = await axios.get<AuthUser>(
+    `${import.meta.env.VITE_API_BASE_URL}/me`,
+    {
+      withCredentials: true,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 
   return response.data;
 };

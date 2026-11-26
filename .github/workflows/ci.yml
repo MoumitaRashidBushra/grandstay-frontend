@@ -1,7 +1,6 @@
 name: Frontend CI
 
-# Validate the React frontend on every pull request by running the static
-# checks and test suite before code is merged into main/master.
+# Validate the React frontend on every pull request.
 on:
   pull_request:
     branches:
@@ -13,8 +12,7 @@ on:
 permissions:
   contents: read
 
-# Cancel outdated runs when a new commit is pushed to the same PR so the
-# latest validation result is always the one that matters.
+# Cancel outdated runs when a new commit is pushed to the same PR.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -27,25 +25,25 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
 
-      # Install the exact dependency tree from the lockfile to keep CI
-      # deterministic and reproducible across runs.
       - name: Install dependencies
         run: npm ci
 
-      # Run the project linter to catch unused code, risky patterns, and
-      # style issues before test execution.
+      - name: Check formatting
+        run: npm run format:check
+
       - name: Run lint
         run: npm run lint
 
-      # Run the Vitest suite to verify component rendering and validation logic
-      # for the GrandStay frontend behave as expected in CI.
-      - name: Run unit tests
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Run unit tests with coverage
         run: npm test

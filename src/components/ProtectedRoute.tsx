@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import type { UserRole } from "../types/auth";
 
@@ -13,6 +13,7 @@ function ProtectedRoute({
   allowDuringPasswordReset = false,
 }: ProtectedRouteProps) {
   const { user, isAuthenticated, isInitializing } = useAuth();
+  const location = useLocation();
 
   // Wait until the initial authentication check is complete.
   if (isInitializing) {
@@ -25,7 +26,7 @@ function ProtectedRoute({
 
   // Redirect users who are not logged in to the login page.
   if (!isAuthenticated || !user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Redirect authenticated users who do not have permission.
@@ -34,7 +35,7 @@ function ProtectedRoute({
   }
 
   if (user.mustResetPw && !allowDuringPasswordReset) {
-    return <Navigate to="/change-password" replace />;
+    return <Navigate to="/staff/change-password" replace />;
   }
 
   // Render the requested page when authentication and role are valid.

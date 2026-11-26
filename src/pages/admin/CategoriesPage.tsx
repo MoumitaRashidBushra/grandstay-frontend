@@ -8,9 +8,10 @@ import {
   Search,
   Sparkles,
   Users,
-  X,
 } from "lucide-react";
 import { useState } from "react";
+import FilterPanel from "../../components/FilterPanel";
+import PageHeader from "../../components/PageHeader";
 
 // Room categories defined in the GrandStay SRS.
 const categories = [
@@ -107,32 +108,22 @@ function CategoriesPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-7">
-      {/* Page heading */}
-      <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <p className="text-sm font-medium text-emerald-700">
-            Hotel Management
-          </p>
-
-          <h1 className="mt-1 font-serif text-3xl font-bold text-emerald-950">
-            Room Categories
-          </h1>
-
-          <p className="mt-2 text-sm text-slate-500">
-            Manage room types, pricing, and guest capacity.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          disabled
-          title="Category creation will be available after API integration"
-          className="flex cursor-not-allowed items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-500 opacity-75 shadow-sm sm:self-auto"
-        >
-          <Plus size={18} className="text-emerald-700" />
-          Add Category
-        </button>
-      </section>
+      <PageHeader
+        eyebrow="Hotel Management"
+        title="Room Categories"
+        description="Manage room types, pricing, and guest capacity."
+        action={
+          <button
+            type="button"
+            disabled
+            title="Category creation will be available after API integration"
+            className="flex cursor-not-allowed items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-500 opacity-75 shadow-sm sm:self-auto"
+          >
+            <Plus size={18} className="text-emerald-700" />
+            Add Category
+          </button>
+        }
+      />
 
       {/* Category overview */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -255,34 +246,12 @@ function CategoriesPage() {
       </section>
 
       {/* Category filters */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-emerald-50 p-3 text-emerald-800">
-              <Filter size={20} />
-            </div>
-
-            <div>
-              <h2 className="font-semibold text-emerald-950">
-                Find Categories
-              </h2>
-
-              <p className="text-xs text-slate-500">
-                Search and filter room categories.
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="flex items-center gap-2 self-start rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 sm:self-auto"
-          >
-            <X size={16} />
-            Clear Filters
-          </button>
-        </div>
-
+      <FilterPanel
+        title="Find Categories"
+        description="Search and filter room categories."
+        icon={Filter}
+        onClear={clearFilters}
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label
@@ -333,7 +302,7 @@ function CategoriesPage() {
             </select>
           </div>
         </div>
-      </section>
+      </FilterPanel>
 
       {/* Category management table */}
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">

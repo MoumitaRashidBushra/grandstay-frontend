@@ -8,6 +8,7 @@ import {
   Search,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import MetricCard from "../../components/MetricCard";
 
 // Dashboard summary cards.
 const summaryCards = [
@@ -69,31 +70,14 @@ function CustomerDashboardPage() {
       {/* Summary Cards */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {summaryCards.map((item) => {
-          const Icon = item.icon;
-
           return (
-            <div
+            <MetricCard
               key={item.label}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-500">
-                    {item.label}
-                  </p>
-
-                  <h3 className="mt-3 text-3xl font-bold text-slate-900">
-                    {item.value}
-                  </h3>
-                </div>
-
-                <div className="rounded-xl bg-emerald-50 p-3 text-emerald-800">
-                  <Icon size={21} />
-                </div>
-              </div>
-
-              <p className="mt-4 text-xs text-slate-500">{item.description}</p>
-            </div>
+              title={item.label}
+              value={item.value}
+              description={item.description}
+              icon={item.icon}
+            />
           );
         })}
       </section>

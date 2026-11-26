@@ -57,6 +57,7 @@ function LoginUI({
               <input
                 id="email"
                 type="email"
+                autoComplete="email"
                 aria-invalid={Boolean(errors.email)}
                 aria-describedby={errors.email ? "email-error" : undefined}
                 {...register("email")}
@@ -87,6 +88,7 @@ function LoginUI({
               <input
                 id="password"
                 type="password"
+                autoComplete="current-password"
                 aria-invalid={Boolean(errors.password)}
                 aria-describedby={
                   errors.password ? "password-error" : undefined
@@ -115,6 +117,7 @@ function LoginUI({
           <button
             type="submit"
             disabled={isPending}
+            aria-busy={isPending}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-800 px-4 py-3 font-semibold text-white transition hover:bg-emerald-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isPending ? "Logging in..." : "Login"}
