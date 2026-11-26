@@ -35,8 +35,10 @@ const MyReservationsPage = lazy(
 const ProfilePage = lazy(() => import("../pages/customer/ProfilePage"));
 
 // General pages.
+const ChangePasswordPage = lazy(() => import("../pages/ChangePasswordPage"));
 const HomePage = lazy(() => import("../pages/HomePage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
+const RegisterPage = lazy(() => import("../pages/RegisterPage"));
 const NoAccessPage = lazy(() => import("../pages/NoAccessPage"));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
 const StaffPage = lazy(() => import("../pages/staff/StaffPage"));
@@ -59,7 +61,19 @@ function AppRouter() {
           {/* Public routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/no-access" element={<NoAccessPage />} />
+
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={["ADMIN", "RECEPTIONIST", "CUSTOMER"]}
+                allowDuringPasswordReset
+              />
+            }
+          >
+            <Route path="/change-password" element={<ChangePasswordPage />} />
+          </Route>
 
           {/* Customer routes */}
           <Route element={<ProtectedRoute allowedRoles={["CUSTOMER"]} />}>

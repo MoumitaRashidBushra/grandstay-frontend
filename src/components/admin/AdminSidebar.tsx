@@ -16,7 +16,7 @@ const menuItems = [
   { name: "Reservations", path: "/admin/reservations", icon: CalendarDays },
   { name: "Rooms", path: "/admin/rooms", icon: BedDouble },
   { name: "Categories", path: "/admin/categories", icon: Tags },
-  { name: "Staff Management", path: "/admin/staff", icon: Users },
+  { name: "Accounts", path: "/admin/staff", icon: Users },
   { name: "Hotel Settings", path: "/admin/settings", icon: Settings },
   { name: "Reports", path: "/admin/reports", icon: ChartNoAxesCombined },
 ];

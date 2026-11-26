@@ -87,7 +87,7 @@ describe("StaffManagementPage", () => {
       expect(updateStaff).toHaveBeenCalledWith("2", { isActive: false });
     });
 
-    await user.click(screen.getByRole("button", { name: "Add Staff Member" }));
+    await user.click(screen.getByRole("button", { name: "Add Receptionist" }));
     await user.type(screen.getByLabelText("Full name"), "Nabila Chowdhury");
     await user.type(
       screen.getByLabelText("Email"),
@@ -98,7 +98,6 @@ describe("StaffManagementPage", () => {
       screen.getByLabelText("Temporary password"),
       "Password@123",
     );
-    await user.selectOptions(screen.getByLabelText("Role"), "ADMIN");
     await user.click(screen.getByRole("button", { name: "Create account" }));
 
     await waitFor(() => {
@@ -106,7 +105,6 @@ describe("StaffManagementPage", () => {
         fullName: "Nabila Chowdhury",
         email: "nabila.staff@grandstay.example",
         mobile: "01733000008",
-        role: "ADMIN",
         password: "Password@123",
       });
     });

@@ -13,6 +13,19 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+function readApiMessage(data: unknown, fallback: string): string {
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "message" in data &&
+    typeof data.message === "string"
+  ) {
+    return data.message;
+  }
+
+  return fallback;
+}
+
 function LoginPage() {
   const loginMutation = useLogin();
   const navigate = useNavigate();
@@ -36,6 +49,11 @@ function LoginPage() {
         ? "We're unable to connect right now. Please check your internet connection and try again."
         : loginMutation.error.response.status === 401
           ? "Invalid email or password"
+          : loginMutation.error.response.status === 403
+            ? readApiMessage(
+                loginMutation.error.response.data,
+                "Your account is deactivated. Please contact the hotel.",
+              )
           : loginMutation.error.response.status >= 500
             ? "Server error. Please try again later."
             : "Unable to log in. Please try again."
@@ -52,6 +70,11 @@ function LoginPage() {
 
       // Clear the login form after successful authentication.
       reset();
+
+      if (response.user.mustResetPw) {
+        navigate("/change-password", { replace: true });
+        return;
+      }
 
       // Redirect the user to the dashboard matching their role.
       switch (response.user.role) {

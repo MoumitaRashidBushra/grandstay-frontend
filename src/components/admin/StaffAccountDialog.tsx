@@ -3,7 +3,6 @@ import { z } from "zod";
 import type {
   CreateStaffInput,
   StaffAccount,
-  StaffRole,
   UpdateStaffInput,
 } from "../../services/staffService";
 
@@ -18,7 +17,6 @@ const detailsSchema = z.object({
       mobilePattern,
       "Enter an 11-digit mobile number, such as 01711000001",
     ),
-  role: z.enum(["ADMIN", "RECEPTIONIST"]),
 });
 
 const createSchema = detailsSchema.extend({
@@ -32,7 +30,6 @@ interface StaffFormValues {
   fullName: string;
   email: string;
   mobile: string;
-  role: StaffRole;
   password: string;
   isActive: boolean;
 }
@@ -45,7 +42,7 @@ interface StaffAccountDialogProps {
   errorMessage: string | null;
   onClose: () => void;
   onCreate: (input: CreateStaffInput) => void;
-  onUpdate: (input: UpdateStaffInput) => void;
+  onUpdate: (input: UpdateStaffInput & { password?: string }) => void;
 }
 
 function StaffAccountDialog({
@@ -63,7 +60,6 @@ function StaffAccountDialog({
     fullName: account?.fullName ?? "",
     email: account?.email ?? "",
     mobile: account?.mobile ?? "",
-    role: account?.role ?? "RECEPTIONIST",
     password: "",
     isActive: account?.isActive ?? true,
   });
@@ -88,7 +84,12 @@ function StaffAccountDialog({
         return;
       }
 
-      onCreate(parsed.data);
+      onCreate({
+        fullName: parsed.data.fullName,
+        email: parsed.data.email,
+        mobile: parsed.data.mobile,
+        password: parsed.data.password,
+      });
       return;
     }
 
@@ -99,15 +100,25 @@ function StaffAccountDialog({
       return;
     }
 
-    const input: UpdateStaffInput = {
+    if (values.password && values.password.length < 8) {
+      setFieldErrors({
+        password: "Temporary password must be at least 8 characters",
+      });
+      return;
+    }
+
+    const input: UpdateStaffInput & { password?: string } = {
       fullName: parsed.data.fullName,
       email: parsed.data.email,
       mobile: parsed.data.mobile,
     };
 
     if (!isSelf) {
-      input.role = parsed.data.role;
       input.isActive = values.isActive;
+    }
+
+    if (values.password.trim()) {
+      input.password = values.password;
     }
 
     onUpdate(input);
@@ -137,8 +148,8 @@ function StaffAccountDialog({
         </h2>
         <p className="mt-1 text-sm text-slate-500">
           {mode === "create"
-            ? "Create an account and assign an administrator or receptionist role."
-            : "Update this account, its role, or whether it can sign in."}
+            ? "Create a receptionist account. Hand over the temporary password in person."
+            : "Update this account or whether it can sign in."}
         </p>
 
         <form className="mt-5 space-y-4" onSubmit={submit}>
@@ -166,31 +177,11 @@ function StaffAccountDialog({
             placeholder="01711000001"
           />
 
-          <div>
-            <label
-              htmlFor="staff-account-role"
-              className="mb-2 block text-sm font-medium text-slate-700"
-            >
-              Role
-            </label>
-            <select
-              id="staff-account-role"
-              value={values.role}
-              disabled={isSelf}
-              onChange={(event) =>
-                updateField("role", event.target.value as StaffRole)
-              }
-              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-50"
-            >
-              <option value="ADMIN">Admin</option>
-              <option value="RECEPTIONIST">Receptionist</option>
-            </select>
-            {isSelf ? (
-              <p className="mt-1 text-xs text-slate-500">
-                You cannot change your own role or account status.
-              </p>
-            ) : null}
-          </div>
+          <p className="text-sm text-slate-600">
+            {mode === "create"
+              ? "This account is created as a receptionist. The administrator account comes from the hotel setup."
+              : `Role: ${account?.role === "ADMIN" ? "Admin" : account?.role === "CUSTOMER" ? "Customer" : "Receptionist"}`}
+          </p>
 
           {mode === "edit" ? (
             <div>
@@ -221,9 +212,21 @@ function StaffAccountDialog({
               value={values.password}
               error={fieldErrors.password}
               onChange={(value) => updateField("password", value)}
-              hint="The new user is asked to change this password at first login."
+              hint="Hand this password to the receptionist in person. They must change it at first login."
             />
           )}
+
+          {mode === "edit" && !isSelf && account?.role !== "ADMIN" ? (
+            <Field
+              id="staff-reset-password"
+              label="New temporary password"
+              type="password"
+              value={values.password}
+              error={fieldErrors.password}
+              onChange={(value) => updateField("password", value)}
+              hint="Optional. The person must change it at the next login."
+            />
+          ) : null}
 
           {errorMessage ? (
             <p role="alert" className="text-sm text-red-700">

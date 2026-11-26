@@ -5,9 +5,13 @@ import type { UserRole } from "../types/auth";
 // Define which roles are allowed to access a protected route.
 interface ProtectedRouteProps {
   allowedRoles: UserRole[];
+  allowDuringPasswordReset?: boolean;
 }
 
-function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
+function ProtectedRoute({
+  allowedRoles,
+  allowDuringPasswordReset = false,
+}: ProtectedRouteProps) {
   const { user, isAuthenticated, isInitializing } = useAuth();
 
   // Wait until the initial authentication check is complete.
@@ -27,6 +31,10 @@ function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   // Redirect authenticated users who do not have permission.
   if (!allowedRoles.includes(user.role)) {
     return <Navigate to="/no-access" replace />;
+  }
+
+  if (user.mustResetPw && !allowDuringPasswordReset) {
+    return <Navigate to="/change-password" replace />;
   }
 
   // Render the requested page when authentication and role are valid.

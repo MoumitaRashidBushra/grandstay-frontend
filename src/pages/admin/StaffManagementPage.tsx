@@ -22,7 +22,10 @@ import StaffAccountDialog from "../../components/admin/StaffAccountDialog";
 import { useAuth } from "../../hooks/useAuth";
 import {
   createStaff,
+  listCustomers,
   listStaff,
+  resetAccountPassword,
+  updateCustomer,
   updateStaff,
   type CreateStaffInput,
   type StaffAccount,
@@ -37,6 +40,7 @@ type DialogState =
 function StaffManagementPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [directory, setDirectory] = useState<"staff" | "customers">("staff");
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -60,11 +64,20 @@ function StaffManagementPage() {
         search: debouncedSearch,
         role: role === "ADMIN" || role === "RECEPTIONIST" ? role : "",
       }),
+    enabled: directory === "staff",
+    placeholderData: keepPreviousData,
+  });
+
+  const customerQuery = useQuery({
+    queryKey: ["admin-customers", debouncedSearch],
+    queryFn: () => listCustomers({ search: debouncedSearch }),
+    enabled: directory === "customers",
     placeholderData: keepPreviousData,
   });
 
   const refreshStaff = async () => {
     await queryClient.invalidateQueries({ queryKey: ["admin-staff"] });
+    await queryClient.invalidateQueries({ queryKey: ["admin-customers"] });
   };
 
   const createMutation = useMutation({
@@ -80,8 +93,27 @@ function StaffManagementPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (variables: { id: string; input: UpdateStaffInput }) =>
-      updateStaff(variables.id, variables.input),
+    mutationFn: async (variables: {
+      id: string;
+      input: UpdateStaffInput & { password?: string };
+      accountKind: "staff" | "customers";
+    }) => {
+      const { password, ...profile } = variables.input;
+      const updated =
+        variables.accountKind === "staff"
+          ? await updateStaff(variables.id, profile)
+          : await updateCustomer(variables.id, profile);
+
+      if (password) {
+        await resetAccountPassword(
+          variables.accountKind,
+          variables.id,
+          password,
+        );
+      }
+
+      return updated;
+    },
     onSuccess: async () => {
       await refreshStaff();
       setDialog(null);
@@ -95,7 +127,26 @@ function StaffManagementPage() {
   });
 
   const summary = staffQuery.data?.summary;
-  const overviewCards = [
+  const customerSummary = customerQuery.data?.summary;
+  const overviewCards =
+    directory === "customers"
+      ? [
+          {
+            label: "Total Customers",
+            value: customerSummary ? String(customerSummary.total) : "—",
+            icon: Users,
+            iconColor: "text-emerald-700",
+            iconBackground: "bg-emerald-50",
+          },
+          {
+            label: "Active Accounts",
+            value: customerSummary ? String(customerSummary.active) : "—",
+            icon: UserCheck,
+            iconColor: "text-amber-700",
+            iconBackground: "bg-amber-50",
+          },
+        ]
+      : [
     {
       label: "Total Staff",
       value: summary ? String(summary.total) : "—",
@@ -136,11 +187,16 @@ function StaffManagementPage() {
     setPendingId(account.id);
     updateMutation.mutate({
       id: account.id,
+      accountKind: directory,
       input: { isActive: !account.isActive },
     });
   };
 
-  const staff = staffQuery.data?.staff ?? [];
+  const activeQuery = directory === "staff" ? staffQuery : customerQuery;
+  const staff =
+    directory === "staff"
+      ? (staffQuery.data?.staff ?? [])
+      : (customerQuery.data?.customers ?? []);
 
   return (
     <div className="mx-auto max-w-7xl space-y-7">
@@ -150,25 +206,51 @@ function StaffManagementPage() {
             Hotel Management
           </p>
           <h1 className="mt-1 font-serif text-3xl font-bold text-emerald-950">
-            Staff Management
+            Accounts
           </h1>
           <p className="mt-2 text-sm text-slate-500">
-            Create, edit, activate, and deactivate staff accounts and assign
-            roles.
+            Create receptionist accounts, and activate or deactivate staff and
+            customers.
           </p>
+          <div className="mt-4 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setDirectory("staff")}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+                directory === "staff"
+                  ? "bg-emerald-700 text-white"
+                  : "border border-slate-200 text-slate-600"
+              }`}
+            >
+              Staff
+            </button>
+            <button
+              type="button"
+              onClick={() => setDirectory("customers")}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+                directory === "customers"
+                  ? "bg-emerald-700 text-white"
+                  : "border border-slate-200 text-slate-600"
+              }`}
+            >
+              Customers
+            </button>
+          </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            setFormError(null);
-            setDialog({ mode: "create" });
-          }}
-          className="flex items-center gap-2 self-start rounded-xl bg-emerald-700 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-emerald-800 sm:self-auto"
-        >
-          <Plus size={18} />
-          Add Staff Member
-        </button>
+        {directory === "staff" ? (
+          <button
+            type="button"
+            onClick={() => {
+              setFormError(null);
+              setDialog({ mode: "create" });
+            }}
+            className="flex items-center gap-2 self-start rounded-xl bg-emerald-700 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-emerald-800 sm:self-auto"
+          >
+            <Plus size={18} />
+            Add Receptionist
+          </button>
+        ) : null}
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -216,9 +298,11 @@ function StaffManagementPage() {
               <Filter size={20} />
             </div>
             <div>
-              <h2 className="font-semibold text-emerald-950">Filter Staff</h2>
+              <h2 className="font-semibold text-emerald-950">
+                {directory === "staff" ? "Filter Staff" : "Filter Customers"}
+              </h2>
               <p className="text-xs text-slate-500">
-                Find team members using different criteria.
+                Find accounts by name or email.
               </p>
             </div>
           </div>
@@ -238,7 +322,7 @@ function StaffManagementPage() {
               htmlFor="staff-search"
               className="mb-2 block text-sm font-medium text-slate-700"
             >
-              Search Staff
+              {directory === "staff" ? "Search Staff" : "Search customers"}
             </label>
             <div className="relative">
               <Search
@@ -255,36 +339,41 @@ function StaffManagementPage() {
               />
             </div>
           </div>
-          <div>
-            <label
-              htmlFor="staff-role"
-              className="mb-2 block text-sm font-medium text-slate-700"
-            >
-              Staff Role
-            </label>
-            <select
-              id="staff-role"
-              value={role}
-              onChange={(event) => setRole(event.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
-            >
-              <option value="">All Roles</option>
-              {staffRoles.map((item) => (
-                <option key={item} value={item}>
-                  {item === "ADMIN" ? "Admin" : "Receptionist"}
-                </option>
-              ))}
-            </select>
-          </div>
+          {directory === "staff" ? (
+            <div>
+              <label
+                htmlFor="staff-role"
+                className="mb-2 block text-sm font-medium text-slate-700"
+              >
+                Staff Role
+              </label>
+              <select
+                id="staff-role"
+                value={role}
+                onChange={(event) => setRole(event.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+              >
+                <option value="">All Roles</option>
+                {staffRoles.map((item) => (
+                  <option key={item} value={item}>
+                    {item === "ADMIN" ? "Admin" : "Receptionist"}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
         </div>
       </section>
 
-      {staffQuery.isError ? (
+      {activeQuery.isError ? (
         <p
           role="alert"
           className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
-          {apiErrorMessage(staffQuery.error, "Could not load staff accounts.")}
+          {apiErrorMessage(
+            activeQuery.error,
+            "Could not load accounts.",
+          )}
         </p>
       ) : null}
 
@@ -323,7 +412,7 @@ function StaffManagementPage() {
               </tr>
             </thead>
             <tbody>
-              {staffQuery.isLoading ? (
+              {activeQuery.isLoading ? (
                 <tr>
                   <td
                     colSpan={5}
@@ -371,7 +460,11 @@ function StaffManagementPage() {
                               : "bg-blue-50 text-blue-700"
                           }`}
                         >
-                          {member.role === "ADMIN" ? "Admin" : "Receptionist"}
+                          {member.role === "ADMIN"
+                            ? "Admin"
+                            : member.role === "CUSTOMER"
+                              ? "Customer"
+                              : "Receptionist"}
                         </span>
                       </td>
                       <td className="px-5 py-4">
@@ -450,7 +543,11 @@ function StaffManagementPage() {
             }
 
             setFormError(null);
-            updateMutation.mutate({ id: dialog.account.id, input });
+            updateMutation.mutate({
+              id: dialog.account.id,
+              accountKind: directory,
+              input,
+            });
           }}
         />
       ) : null}
