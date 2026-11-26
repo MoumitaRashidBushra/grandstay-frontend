@@ -14,6 +14,7 @@ import {
   Tags,
   UserRound,
   Users,
+  Wrench,
 } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
@@ -82,6 +83,12 @@ const menuItems: MenuItem[] = [
     name: "Rooms",
     path: "/staff/rooms",
     icon: BedDouble,
+    roles: ["ADMIN"],
+  },
+  {
+    name: "Maintenance",
+    path: "/staff/maintenance",
+    icon: Wrench,
     roles: ["ADMIN"],
   },
   {

@@ -141,6 +141,13 @@ function AppRouter() {
               <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
                 <Route path="reservations" element={<ReservationsPage />} />
                 <Route path="rooms" element={<RoomsPage />} />
+                <Route
+                  path="maintenance"
+                  element={deskPage(
+                    "Maintenance",
+                    "Mark rooms as under maintenance. Confirmed bookings stay in place and the desk receives a warning when needed.",
+                  )}
+                />
                 <Route path="categories" element={<CategoriesPage />} />
                 <Route path="accounts" element={<StaffManagementPage />} />
                 <Route path="settings" element={<HotelSettingsPage />} />
