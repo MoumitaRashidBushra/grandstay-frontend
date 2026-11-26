@@ -149,35 +149,35 @@ function StaffManagementPage() {
           },
         ]
       : [
-    {
-      label: "Total Staff",
-      value: summary ? String(summary.total) : "—",
-      icon: Users,
-      iconColor: "text-emerald-700",
-      iconBackground: "bg-emerald-50",
-    },
-    {
-      label: "Administrators",
-      value: summary ? String(summary.admins) : "—",
-      icon: ShieldCheck,
-      iconColor: "text-violet-700",
-      iconBackground: "bg-violet-50",
-    },
-    {
-      label: "Receptionists",
-      value: summary ? String(summary.receptionists) : "—",
-      icon: UserRound,
-      iconColor: "text-blue-700",
-      iconBackground: "bg-blue-50",
-    },
-    {
-      label: "Active Accounts",
-      value: summary ? String(summary.active) : "—",
-      icon: UserCheck,
-      iconColor: "text-amber-700",
-      iconBackground: "bg-amber-50",
-    },
-  ];
+          {
+            label: "Total Staff",
+            value: summary ? String(summary.total) : "—",
+            icon: Users,
+            iconColor: "text-emerald-700",
+            iconBackground: "bg-emerald-50",
+          },
+          {
+            label: "Administrators",
+            value: summary ? String(summary.admins) : "—",
+            icon: ShieldCheck,
+            iconColor: "text-violet-700",
+            iconBackground: "bg-violet-50",
+          },
+          {
+            label: "Receptionists",
+            value: summary ? String(summary.receptionists) : "—",
+            icon: UserRound,
+            iconColor: "text-blue-700",
+            iconBackground: "bg-blue-50",
+          },
+          {
+            label: "Active Accounts",
+            value: summary ? String(summary.active) : "—",
+            icon: UserCheck,
+            iconColor: "text-amber-700",
+            iconBackground: "bg-amber-50",
+          },
+        ];
 
   const clearFilters = () => {
     setSearch("");
@@ -372,10 +372,7 @@ function StaffManagementPage() {
           role="alert"
           className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
-          {apiErrorMessage(
-            activeQuery.error,
-            "Could not load accounts.",
-          )}
+          {apiErrorMessage(activeQuery.error, "Could not load accounts.")}
         </p>
       ) : null}
 

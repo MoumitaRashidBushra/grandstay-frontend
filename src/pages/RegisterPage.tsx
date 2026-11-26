@@ -40,8 +40,19 @@ function RegisterPage() {
         <p className="text-sm text-slate-600">
           Registration creates a customer account.
         </p>
-        <TextField id="register-name" label="Full name" value={fullName} onChange={setFullName} />
-        <TextField id="register-email" label="Email" type="email" value={email} onChange={setEmail} />
+        <TextField
+          id="register-name"
+          label="Full name"
+          value={fullName}
+          onChange={setFullName}
+        />
+        <TextField
+          id="register-email"
+          label="Email"
+          type="email"
+          value={email}
+          onChange={setEmail}
+        />
         <TextField
           id="register-mobile"
           label="Mobile"
@@ -68,7 +79,10 @@ function RegisterPage() {
         >
           {isSubmitting ? "Creating..." : "Create account"}
         </button>
-        <Link className="block text-center text-sm text-emerald-800" to="/login">
+        <Link
+          className="block text-center text-sm text-emerald-800"
+          to="/login"
+        >
           Back to login
         </Link>
       </form>

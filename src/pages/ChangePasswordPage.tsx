@@ -45,7 +45,10 @@ function ChangePasswordPage() {
         <p className="text-sm text-slate-600">
           Your temporary password must be changed before you continue.
         </p>
-        <label className="block text-sm font-medium text-slate-700" htmlFor="current-password">
+        <label
+          className="block text-sm font-medium text-slate-700"
+          htmlFor="current-password"
+        >
           Current password
           <input
             id="current-password"
@@ -56,7 +59,10 @@ function ChangePasswordPage() {
             required
           />
         </label>
-        <label className="block text-sm font-medium text-slate-700" htmlFor="new-password">
+        <label
+          className="block text-sm font-medium text-slate-700"
+          htmlFor="new-password"
+        >
           New password
           <input
             id="new-password"
