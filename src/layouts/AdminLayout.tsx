@@ -8,7 +8,6 @@ function AdminLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Logout from the backend and clear local authentication
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -20,24 +19,28 @@ function AdminLayout() {
     }
   };
 
+  const roleLabel =
+    user?.role === "RECEPTIONIST"
+      ? "Receptionist"
+      : user?.role === "ADMIN"
+        ? "Administrator"
+        : "Staff";
+
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Fixed sidebar */}
       <AdminSidebar />
 
-      {/* Main content area */}
       <div className="ml-72 flex min-h-screen min-w-0 flex-col">
-        {/* Topbar */}
         <header className="sticky top-0 z-40 flex min-h-20 items-center justify-between border-b border-slate-200 bg-white px-8 py-4 shadow-sm">
-          {/* Page branding */}
           <div>
             <h2 className="text-lg font-bold text-slate-800">
-              GrandStay Management
+              GrandStay Staff Console
             </h2>
-            <p className="text-sm text-slate-500">Administration Panel</p>
+            <p className="text-sm text-slate-500">
+              Menu items follow your role
+            </p>
           </div>
 
-          {/* Admin information and actions */}
           <div className="flex items-center gap-5">
             <button
               type="button"
@@ -47,7 +50,6 @@ function AdminLayout() {
               <Bell size={21} />
             </button>
 
-            {/* Admin details */}
             <div className="flex items-center gap-3 border-l border-slate-200 pl-5">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                 <UserRound size={20} />
@@ -55,15 +57,12 @@ function AdminLayout() {
 
               <div>
                 <p className="text-sm font-semibold text-slate-800">
-                  {user?.fullName ?? "Administrator"}
+                  {user?.fullName ?? "Staff member"}
                 </p>
-                <p className="text-xs text-slate-500">
-                  {user?.role ?? "ADMIN"}
-                </p>
+                <p className="text-xs text-slate-500">{roleLabel}</p>
               </div>
             </div>
 
-            {/* Logout button in topbar */}
             <button
               type="button"
               onClick={handleLogout}
@@ -75,7 +74,6 @@ function AdminLayout() {
           </div>
         </header>
 
-        {/* Child page content renders here */}
         <main className="flex-1 p-8">
           <Outlet />
         </main>

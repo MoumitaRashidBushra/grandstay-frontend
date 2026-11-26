@@ -2,14 +2,12 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import AuthApiSetup from "../components/AuthApiSetup";
+import LegacyAdminRedirect from "../components/LegacyAdminRedirect";
 import ProtectedRoute from "../components/ProtectedRoute";
 
-// Load layouts only when their routes are needed.
 const AdminLayout = lazy(() => import("../layouts/AdminLayout"));
 const CustomerLayout = lazy(() => import("../layouts/CustomerLayout"));
 
-// Admin pages.
-const AdminPage = lazy(() => import("../pages/admin/AdminPage"));
 const CategoriesPage = lazy(() => import("../pages/admin/CategoriesPage"));
 const HotelSettingsPage = lazy(
   () => import("../pages/admin/HotelSettingsPage"),
@@ -21,7 +19,6 @@ const StaffManagementPage = lazy(
   () => import("../pages/admin/StaffManagementPage"),
 );
 
-// Customer pages.
 const BookingHistoryPage = lazy(
   () => import("../pages/customer/BookingHistoryPage"),
 );
@@ -34,22 +31,27 @@ const MyReservationsPage = lazy(
 );
 const ProfilePage = lazy(() => import("../pages/customer/ProfilePage"));
 
-// General pages.
 const ChangePasswordPage = lazy(() => import("../pages/ChangePasswordPage"));
 const HomePage = lazy(() => import("../pages/HomePage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
 const RegisterPage = lazy(() => import("../pages/RegisterPage"));
 const NoAccessPage = lazy(() => import("../pages/NoAccessPage"));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
-const StaffPage = lazy(() => import("../pages/staff/StaffPage"));
+const StaffHomePage = lazy(() => import("../pages/staff/StaffHomePage"));
+const StaffPlaceholderPage = lazy(
+  () => import("../pages/staff/StaffPlaceholderPage"),
+);
+const StaffProfilePage = lazy(() => import("../pages/staff/StaffProfilePage"));
+
+function deskPage(title: string, description: string) {
+  return <StaffPlaceholderPage title={title} description={description} />;
+}
 
 function AppRouter() {
   return (
     <BrowserRouter>
-      {/* Configure authenticated API requests. */}
       <AuthApiSetup />
 
-      {/* Display a loading message while a page chunk is downloading. */}
       <Suspense
         fallback={
           <div className="flex min-h-screen items-center justify-center">
@@ -58,7 +60,6 @@ function AppRouter() {
         }
       >
         <Routes>
-          {/* Public routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -75,7 +76,6 @@ function AppRouter() {
             <Route path="/change-password" element={<ChangePasswordPage />} />
           </Route>
 
-          {/* Customer routes */}
           <Route element={<ProtectedRoute allowedRoles={["CUSTOMER"]} />}>
             <Route path="/customer" element={<CustomerLayout />}>
               <Route index element={<CustomerDashboardPage />} />
@@ -86,25 +86,71 @@ function AppRouter() {
             </Route>
           </Route>
 
-          {/* Receptionist routes */}
-          <Route element={<ProtectedRoute allowedRoles={["RECEPTIONIST"]} />}>
-            <Route path="/staff/*" element={<StaffPage />} />
-          </Route>
+          {/* One staff console for Admin and Receptionist (SRS v0.2 D6/D11). */}
+          <Route
+            element={
+              <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />
+            }
+          >
+            <Route path="/staff" element={<AdminLayout />}>
+              <Route index element={<StaffHomePage />} />
+              <Route
+                path="find-booking"
+                element={deskPage(
+                  "Find booking",
+                  "Search for a reservation by guest name or booking reference.",
+                )}
+              />
+              <Route
+                path="arrivals"
+                element={deskPage(
+                  "Today's arrivals and departures",
+                  "See who is expected to arrive or leave today.",
+                )}
+              />
+              <Route
+                path="check-in"
+                element={deskPage(
+                  "Check-in",
+                  "Check arriving guests into their rooms.",
+                )}
+              />
+              <Route
+                path="check-out"
+                element={deskPage(
+                  "Check-out and invoice",
+                  "Complete departure and issue the invoice.",
+                )}
+              />
+              <Route
+                path="invoices/reprint"
+                element={deskPage(
+                  "Reprint invoice",
+                  "Print a copy of an existing invoice.",
+                )}
+              />
+              <Route
+                path="availability"
+                element={deskPage(
+                  "Availability search",
+                  "View room availability. Receptionists can search but not change inventory here.",
+                )}
+              />
+              <Route path="profile" element={<StaffProfilePage />} />
 
-          {/* Admin routes */}
-          <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<AdminPage />} />
-              <Route path="reservations" element={<ReservationsPage />} />
-              <Route path="rooms" element={<RoomsPage />} />
-              <Route path="categories" element={<CategoriesPage />} />
-              <Route path="staff" element={<StaffManagementPage />} />
-              <Route path="settings" element={<HotelSettingsPage />} />
-              <Route path="reports" element={<ReportsPage />} />
+              <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+                <Route path="reservations" element={<ReservationsPage />} />
+                <Route path="rooms" element={<RoomsPage />} />
+                <Route path="categories" element={<CategoriesPage />} />
+                <Route path="accounts" element={<StaffManagementPage />} />
+                <Route path="settings" element={<HotelSettingsPage />} />
+                <Route path="reports" element={<ReportsPage />} />
+              </Route>
             </Route>
           </Route>
 
-          {/* Handle unknown routes */}
+          <Route path="/admin/*" element={<LegacyAdminRedirect />} />
+
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>

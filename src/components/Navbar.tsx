@@ -66,17 +66,12 @@ export default function Navbar() {
         </a>
 
         {/* Show only the portal allowed for the logged-in user's role. */}
-        {isAuthenticated && user?.role === "ADMIN" && (
-          <Link to="/admin" className="transition hover:text-emerald-800">
-            Admin portal
-          </Link>
-        )}
-
-        {isAuthenticated && user?.role === "RECEPTIONIST" && (
-          <Link to="/staff" className="transition hover:text-emerald-800">
-            Staff portal
-          </Link>
-        )}
+        {isAuthenticated &&
+          (user?.role === "ADMIN" || user?.role === "RECEPTIONIST") && (
+            <Link to="/staff" className="transition hover:text-emerald-800">
+              Staff console
+            </Link>
+          )}
 
         {isAuthenticated && user?.role === "CUSTOMER" && (
           <Link to="/customer" className="transition hover:text-emerald-800">

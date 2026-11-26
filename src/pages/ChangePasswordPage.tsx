@@ -20,11 +20,9 @@ function ChangePasswordPage() {
       await api.post("/me/password", { currentPassword, newPassword });
       markPasswordChanged();
       const destination =
-        user?.role === "ADMIN"
-          ? "/admin"
-          : user?.role === "RECEPTIONIST"
-            ? "/staff"
-            : "/customer";
+        user?.role === "ADMIN" || user?.role === "RECEPTIONIST"
+          ? "/staff"
+          : "/customer";
       navigate(destination, { replace: true });
     } catch {
       setErrorMessage("Check your current password and try a new one.");

@@ -76,12 +76,9 @@ function LoginPage() {
         return;
       }
 
-      // Redirect the user to the dashboard matching their role.
+      // Staff (admin and receptionist) share one console; customers use theirs.
       switch (response.user.role) {
         case "ADMIN":
-          navigate("/admin", { replace: true });
-          break;
-
         case "RECEPTIONIST":
           navigate("/staff", { replace: true });
           break;
