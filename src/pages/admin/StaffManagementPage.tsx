@@ -15,10 +15,16 @@ import {
   UserCog,
   UserRound,
   Users,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import StaffAccountDialog from "../../components/admin/StaffAccountDialog";
 import { useAuth } from "../../hooks/useAuth";
+import type {
+  CreateStaffInput,
+  StaffAccount,
+  UpdateStaffInput,
+} from "../../services/staffService";
 import {
   createStaff,
   listCustomers,
@@ -26,9 +32,6 @@ import {
   resetAccountPassword,
   updateCustomer,
   updateStaff,
-  type CreateStaffInput,
-  type StaffAccount,
-  type UpdateStaffInput,
 } from "../../services/staffService";
 
 const staffRoles = ["ADMIN", "RECEPTIONIST"] as const;
@@ -362,7 +365,7 @@ function StaffManagementPage() {
             </div>
           ) : null}
         </div>
-      </FilterPanel>
+      </section>
 
       {activeQuery.isError ? (
         <p

@@ -37,8 +37,9 @@ const StaffPage = lazy(() => import("../pages/staff/StaffPage"));
 const StaffOperationPage = lazy(
   () => import("../pages/staff/StaffOperationPage"),
 );
+const StaffProfilePage = lazy(() => import("../pages/staff/StaffProfilePage"));
 
-// General pages.
+const ChangePasswordPage = lazy(() => import("../pages/ChangePasswordPage"));
 const HomePage = lazy(() => import("../pages/HomePage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
 const RegisterPage = lazy(() => import("../pages/RegisterPage"));
