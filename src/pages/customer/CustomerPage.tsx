@@ -15,10 +15,10 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
+import { useLogout } from "../../hooks/useLogout";
 import { useAuth } from "../../hooks/useAuth";
-import { logoutUser } from "../../services/authService";
 
 const menuItems = [
   {
@@ -78,26 +78,9 @@ const summaryCards = [
 
 function CustomerPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  // Call backend logout API and clear local authentication.
-  const handleLogout = async () => {
-    if (isLoggingOut) return;
-
-    setIsLoggingOut(true);
-
-    try {
-      await logoutUser();
-    } catch (error) {
-      console.error("Logout API failed:", error);
-    } finally {
-      logout();
-      navigate("/login", { replace: true });
-    }
-  };
+  const { user } = useAuth();
+  const { handleLogout, isLoggingOut } = useLogout();
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
