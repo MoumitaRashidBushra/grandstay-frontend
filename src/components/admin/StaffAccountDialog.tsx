@@ -216,7 +216,7 @@ function StaffAccountDialog({
             />
           )}
 
-          {mode === "edit" && !isSelf && account?.role !== "ADMIN" ? (
+          {mode === "edit" && !isSelf ? (
             <Field
               id="staff-reset-password"
               label="New temporary password"
@@ -224,7 +224,7 @@ function StaffAccountDialog({
               value={values.password}
               error={fieldErrors.password}
               onChange={(value) => updateField("password", value)}
-              hint="Optional. The person must change it at the next login."
+              hint="Optional. Hand this over in person. They must change it at the next login."
             />
           ) : null}
 
