@@ -5,6 +5,7 @@ import AuthApiSetup from "../components/AuthApiSetup";
 import Navbar from "../components/Navbar";
 import ProtectedRoute from "../components/ProtectedRoute";
 
+// Application layouts.
 const CustomerLayout = lazy(() => import("../layouts/CustomerLayout"));
 const StaffLayout = lazy(() => import("../layouts/StaffLayout"));
 
@@ -36,9 +37,8 @@ const StaffPage = lazy(() => import("../pages/staff/StaffPage"));
 const StaffOperationPage = lazy(
   () => import("../pages/staff/StaffOperationPage"),
 );
-const StaffProfilePage = lazy(() => import("../pages/staff/StaffProfilePage"));
 
-const ChangePasswordPage = lazy(() => import("../pages/ChangePasswordPage"));
+// General pages.
 const HomePage = lazy(() => import("../pages/HomePage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
 const RegisterPage = lazy(() => import("../pages/RegisterPage"));

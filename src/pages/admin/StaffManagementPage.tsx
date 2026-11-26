@@ -15,7 +15,6 @@ import {
   UserCog,
   UserRound,
   Users,
-  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import StaffAccountDialog from "../../components/admin/StaffAccountDialog";
@@ -363,7 +362,7 @@ function StaffManagementPage() {
             </div>
           ) : null}
         </div>
-      </section>
+      </FilterPanel>
 
       {activeQuery.isError ? (
         <p

@@ -11,10 +11,12 @@ export default function Navbar() {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Close the mobile menu after selecting a navigation link.
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
 
+  // Check whether a navigation link matches the current page.
   const isHomeActive =
     location.pathname === "/" && location.hash !== "#booking";
 
@@ -54,6 +56,7 @@ export default function Navbar() {
         <span className="font-serif">GrandStay</span>
       </Link>
 
+      {/* Desktop navigation links */}
       <div className="hidden items-center gap-7 text-[15px] font-medium lg:flex xl:gap-9">
         <Link
           to="/"
@@ -97,6 +100,7 @@ export default function Navbar() {
         )}
       </div>
 
+      {/* Login or Logout button */}
       <div className="flex items-center gap-2">
         {isAuthenticated ? (
           <button
@@ -121,6 +125,7 @@ export default function Navbar() {
           </Link>
         )}
 
+        {/* Mobile menu toggle */}
         <button
           type="button"
           onClick={() => setIsMobileMenuOpen((previous) => !previous)}
@@ -139,6 +144,7 @@ export default function Navbar() {
         </button>
       </div>
 
+      {/* Responsive mobile navigation */}
       {isMobileMenuOpen && (
         <div
           id="mobile-navigation"
