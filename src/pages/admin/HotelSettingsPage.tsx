@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
+import PageHeader from "../../components/PageHeader";
 
 // Hotel configuration based on the GrandStay SRS.
 const hotelSettings = {
@@ -28,32 +29,22 @@ const hotelSettings = {
 function HotelSettingsPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-7">
-      {/* Page heading */}
-      <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <p className="text-sm font-medium text-emerald-700">
-            Hotel Management
-          </p>
-
-          <h1 className="mt-1 font-serif text-3xl font-bold text-emerald-950">
-            Hotel Settings
-          </h1>
-
-          <p className="mt-2 text-sm text-slate-500">
-            View and manage your hotel's basic configuration and preferences.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          disabled
-          title="Settings updates will be available after API integration"
-          className="flex cursor-not-allowed items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-500 opacity-75 shadow-sm sm:self-auto"
-        >
-          <Save size={17} className="text-emerald-700" />
-          Save Changes
-        </button>
-      </section>
+      <PageHeader
+        eyebrow="Hotel Management"
+        title="Hotel Settings"
+        description="View and manage your hotel's basic configuration and preferences."
+        action={
+          <button
+            type="button"
+            disabled
+            title="Settings updates will be available after API integration"
+            className="flex cursor-not-allowed items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-500 opacity-75 shadow-sm sm:self-auto"
+          >
+            <Save size={17} className="text-emerald-700" />
+            Save Changes
+          </button>
+        }
+      />
 
       {/* Settings overview */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

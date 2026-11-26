@@ -7,18 +7,19 @@ import {
 import { useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import heroImage from "../assets/grandstay-sunset-resort.png";
+import { getNextDateInputValue, getTodayDateInputValue } from "../utils/date";
 
 export default function HeroSection() {
   const navigate = useNavigate();
   const checkInRef = useRef<HTMLInputElement>(null);
   const checkOutRef = useRef<HTMLInputElement>(null);
+
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState("1");
   const [message, setMessage] = useState("");
 
-  // Native date inputs use an ISO-formatted minimum date.
-  const today = new Date().toLocaleDateString("en-CA");
+  const today = getTodayDateInputValue();
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -34,8 +35,11 @@ export default function HeroSection() {
       return;
     }
 
+    // Clear any previous validation message before navigation.
+    setMessage("");
+
     const search = new URLSearchParams({ checkIn, checkOut, guests });
-    navigate(`/customer?${search.toString()}`);
+    navigate(`/rooms?${search.toString()}`);
   };
 
   return (
@@ -100,7 +104,16 @@ export default function HeroSection() {
                 type="date"
                 min={today}
                 value={checkIn}
-                onChange={(e) => setCheckIn(e.target.value)}
+                onChange={(e) => {
+                  const nextCheckIn = e.target.value;
+
+                  setCheckIn(nextCheckIn);
+                  setMessage("");
+
+                  if (checkOut && checkOut <= nextCheckIn) {
+                    setCheckOut("");
+                  }
+                }}
                 required
                 className="mt-0.5 w-full min-w-0 bg-transparent text-xs text-white outline-none scheme-dark"
               />
@@ -129,9 +142,12 @@ export default function HeroSection() {
                 id="checkOut"
                 ref={checkOutRef}
                 type="date"
-                min={checkIn || today}
+                min={checkIn ? getNextDateInputValue(checkIn) : today}
                 value={checkOut}
-                onChange={(e) => setCheckOut(e.target.value)}
+                onChange={(e) => {
+                  setCheckOut(e.target.value);
+                  setMessage("");
+                }}
                 required
                 className="mt-0.5 w-full min-w-0 bg-transparent text-xs text-white outline-none scheme-dark"
               />
@@ -139,7 +155,11 @@ export default function HeroSection() {
           </div>
 
           <div className="flex items-center gap-2 px-2 py-3 text-left lg:py-1.5">
-            <UserRound size={22} className="shrink-0 text-amber-300" />
+            <UserRound
+              aria-hidden="true"
+              size={22}
+              className="shrink-0 text-amber-300"
+            />
 
             <div className="min-w-0 flex-1">
               <label
@@ -152,28 +172,28 @@ export default function HeroSection() {
               <select
                 id="guests"
                 value={guests}
-                onChange={(e) => setGuests(e.target.value)}
+                onChange={(e) => {
+                  setGuests(e.target.value);
+                  setMessage("");
+                }}
                 className="mt-0.5 w-full bg-transparent text-xs text-white outline-none"
               >
                 <option value="1" className="text-black">
                   1 Guest
                 </option>
-
                 <option value="2" className="text-black">
                   2 Guests
                 </option>
-
                 <option value="3" className="text-black">
                   3 Guests
                 </option>
-
                 <option value="4" className="text-black">
                   4 Guests
                 </option>
               </select>
             </div>
 
-            <ChevronDown size={16} />
+            <ChevronDown aria-hidden="true" size={16} />
           </div>
 
           <button
@@ -181,7 +201,7 @@ export default function HeroSection() {
             className="flex items-center justify-center gap-2 rounded-full border border-white/50 bg-emerald-950 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-emerald-800 sm:text-sm"
           >
             Search Rooms
-            <ChevronRight size={20} />
+            <ChevronRight aria-hidden="true" size={20} />
           </button>
         </form>
 

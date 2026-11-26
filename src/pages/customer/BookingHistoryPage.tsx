@@ -7,6 +7,7 @@ import {
   Clock,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import MetricCard from "../../components/MetricCard";
 
 // Summary information will be populated from the backend API later.
 const historyStats = [
@@ -63,31 +64,14 @@ function BookingHistoryPage() {
       {/* Booking history summary */}
       <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {historyStats.map((stat) => {
-          const Icon = stat.icon;
-
           return (
-            <div
+            <MetricCard
               key={stat.title}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-500">
-                    {stat.title}
-                  </p>
-
-                  <h2 className="mt-3 text-3xl font-bold text-slate-900">
-                    {stat.value}
-                  </h2>
-                </div>
-
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800">
-                  <Icon size={21} />
-                </div>
-              </div>
-
-              <p className="mt-3 text-xs text-slate-400">{stat.description}</p>
-            </div>
+              title={stat.title}
+              value={stat.value}
+              description={stat.description}
+              icon={stat.icon}
+            />
           );
         })}
       </section>

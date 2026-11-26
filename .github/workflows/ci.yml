@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   lint-build-test:
-    name: Lint and unit tests
+    name: Frontend quality checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -40,12 +40,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check formatting
+        run: npm run format:check
+
       # Run the project linter to catch unused code, risky patterns, and
       # style issues before test execution.
       - name: Run lint
         run: npm run lint
 
+      - name: Build production bundle
+        run: npm run build
+
       # Run the Vitest suite to verify component rendering and validation logic
-      # for the GrandStay frontend behave as expected in CI.
-      - name: Run unit tests
+      # for the GrandStay frontend, including the configured coverage thresholds.
+      - name: Run unit tests with coverage
         run: npm test

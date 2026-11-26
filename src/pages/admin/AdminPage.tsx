@@ -13,7 +13,7 @@ import {
   RefreshCcw,
   Users,
 } from "lucide-react";
-import StatCard from "../../components/admin/StatCard";
+import MetricCard from "../../components/MetricCard";
 
 // SRS-defined room categories and their fixed starting configuration.
 const roomCategories = [
@@ -76,35 +76,35 @@ function AdminPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-          <StatCard
+          <MetricCard
             title="Total Rooms"
             value="50"
             description="Total hotel room inventory"
             icon={BedDouble}
           />
 
-          <StatCard
+          <MetricCard
             title="Occupied Rooms"
             value="—"
             description="Current occupied room count"
             icon={DoorOpen}
           />
 
-          <StatCard
+          <MetricCard
             title="Available Rooms"
             value="—"
             description="Rooms available for booking"
             icon={CalendarCheck}
           />
 
-          <StatCard
+          <MetricCard
             title="Maintenance"
             value="—"
             description="Rooms temporarily unavailable"
             icon={RefreshCcw}
           />
 
-          <StatCard
+          <MetricCard
             title="Retired Rooms"
             value="—"
             description="Rooms permanently retired"
@@ -191,21 +191,21 @@ function AdminPage() {
         </h2>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          <StatCard
+          <MetricCard
             title="Revenue"
             value="—"
             description="Daily and monthly payment revenue"
             icon={CircleDollarSign}
           />
 
-          <StatCard
+          <MetricCard
             title="Refunds"
             value="—"
             description="Total refunded payment amount"
             icon={RefreshCcw}
           />
 
-          <StatCard
+          <MetricCard
             title="Net Revenue"
             value="—"
             description="Revenue after refunds"

@@ -2,6 +2,7 @@ import {
   BarChart3,
   BedDouble,
   CalendarDays,
+  Clock,
   Download,
   Filter,
   Percent,
@@ -10,12 +11,19 @@ import {
   TrendingUp,
   Users,
   Wallet,
-  X,
 } from "lucide-react";
 import { useState } from "react";
+import FilterPanel from "../../components/FilterPanel";
+import PageHeader from "../../components/PageHeader";
 
 // Report filters.
-const bookingStatuses = ["CONFIRMED", "CHECKED_IN", "CHECKED_OUT", "CANCELLED"];
+const bookingStatuses = [
+  "CONFIRMED",
+  "CHECKED_IN",
+  "CHECKED_OUT",
+  "CANCELLED",
+  "NO_SHOW",
+];
 
 const roomCategories = ["STANDARD", "DELUXE", "SUITE"];
 
@@ -97,6 +105,22 @@ const bookingStatusItems = [
     label: "Cancelled",
     color: "bg-rose-500",
   },
+  {
+    label: "No-show",
+    color: "bg-amber-500",
+  },
+];
+
+// Daily and monthly revenue report categories.
+const revenuePeriods = [
+  {
+    label: "Daily Revenue",
+    description: "Revenue generated per day",
+  },
+  {
+    label: "Monthly Revenue",
+    description: "Revenue generated per month",
+  },
 ];
 
 function ReportsPage() {
@@ -120,32 +144,22 @@ function ReportsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-7">
-      {/* Page heading */}
-      <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <p className="text-sm font-medium text-emerald-700">
-            Hotel Analytics
-          </p>
-
-          <h1 className="mt-1 font-serif text-3xl font-bold text-emerald-950">
-            Reports & Analytics
-          </h1>
-
-          <p className="mt-2 text-sm text-slate-500">
-            Monitor hotel performance, reservations, revenue, and occupancy.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          disabled
-          title="Report export will be available after API integration"
-          className="flex cursor-not-allowed items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-500 opacity-75 shadow-sm sm:self-auto"
-        >
-          <Download size={17} className="text-emerald-700" />
-          Export Report
-        </button>
-      </section>
+      <PageHeader
+        eyebrow="Hotel Analytics"
+        title="Reports & Analytics"
+        description="Monitor hotel performance, reservations, revenue, and occupancy."
+        action={
+          <button
+            type="button"
+            disabled
+            title="Report export will be available after API integration"
+            className="flex cursor-not-allowed items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-500 opacity-75 shadow-sm sm:self-auto"
+          >
+            <Download size={17} className="text-emerald-700" />
+            Export Report
+          </button>
+        }
+      />
 
       {/* Report summary */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -176,32 +190,12 @@ function ReportsPage() {
       </section>
 
       {/* Report filters */}
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-emerald-50 p-3 text-emerald-800">
-              <Filter size={20} />
-            </div>
-
-            <div>
-              <h2 className="font-semibold text-emerald-950">Report Filters</h2>
-
-              <p className="text-xs text-slate-500">
-                Narrow down reports using reservation details.
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="flex items-center gap-2 self-start rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 sm:self-auto"
-          >
-            <X size={16} />
-            Clear Filters
-          </button>
-        </div>
-
+      <FilterPanel
+        title="Report Filters"
+        description="Narrow down reports using reservation details."
+        icon={Filter}
+        onClear={clearFilters}
+      >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {/* Booking reference search */}
           <div>
@@ -333,6 +327,74 @@ function ReportsPage() {
             </select>
           </div>
         </div>
+      </FilterPanel>
+
+      {/* Today's activity report */}
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="rounded-xl bg-blue-50 p-3 text-blue-700">
+            <Clock size={21} />
+          </div>
+
+          <div>
+            <h2 className="font-semibold text-emerald-950">Today's Activity</h2>
+
+            <p className="mt-1 text-xs text-slate-500">
+              Overview of today's arrivals and departures.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
+            <div className="flex items-center gap-2">
+              <CalendarDays size={17} className="text-emerald-700" />
+              <p className="text-sm text-slate-500">Today's Check-ins</p>
+            </div>
+
+            <p className="mt-4 text-2xl font-bold text-emerald-950">—</p>
+          </div>
+
+          <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
+            <div className="flex items-center gap-2">
+              <CalendarDays size={17} className="text-blue-700" />
+              <p className="text-sm text-slate-500">Today's Check-outs</p>
+            </div>
+
+            <p className="mt-4 text-2xl font-bold text-emerald-950">—</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Upcoming arrivals */}
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="rounded-xl bg-emerald-50 p-3 text-emerald-700">
+            <Users size={21} />
+          </div>
+
+          <div>
+            <h2 className="font-semibold text-emerald-950">
+              Upcoming Arrivals
+            </h2>
+
+            <p className="mt-1 text-xs text-slate-500">
+              Expected guest arrivals over the next 7 days.
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-8 text-center">
+          <CalendarDays size={30} className="mx-auto text-slate-300" />
+
+          <p className="mt-3 text-sm font-medium text-slate-700">
+            Upcoming arrivals will appear here
+          </p>
+
+          <p className="mt-1 text-xs text-slate-400">
+            Arrival information will be available when report data is connected.
+          </p>
+        </div>
       </section>
 
       {/* Room status report */}
@@ -400,7 +462,7 @@ function ReportsPage() {
           <span className="text-xs text-slate-400">FR-RPT-03</span>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {bookingStatusItems.map((item) => (
             <div
               key={item.label}
@@ -419,24 +481,18 @@ function ReportsPage() {
 
       {/* Revenue report */}
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-        <div className="mb-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-amber-50 p-3 text-amber-700">
-              <Wallet size={21} />
-            </div>
-
-            <div>
-              <h2 className="font-semibold text-emerald-950">
-                Revenue Overview
-              </h2>
-
-              <p className="mt-1 text-xs text-slate-500">
-                Monitor booking revenue and refunds.
-              </p>
-            </div>
+        <div className="mb-5 flex items-center gap-3">
+          <div className="rounded-xl bg-amber-50 p-3 text-amber-700">
+            <Wallet size={21} />
           </div>
 
-          <span className="text-xs text-slate-400">FR-RPT-04</span>
+          <div>
+            <h2 className="font-semibold text-emerald-950">Revenue Overview</h2>
+
+            <p className="mt-1 text-xs text-slate-500">
+              Monitor booking revenue and refunds.
+            </p>
+          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
@@ -454,6 +510,38 @@ function ReportsPage() {
             <p className="text-sm text-slate-500">Net Revenue</p>
             <p className="mt-3 text-2xl font-bold text-emerald-700">—</p>
           </div>
+        </div>
+
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          {revenuePeriods.map((item) => (
+            <div
+              key={item.label}
+              className="rounded-xl border border-slate-100 bg-slate-50/70 p-4"
+            >
+              <p className="text-sm font-semibold text-emerald-950">
+                {item.label}
+              </p>
+
+              <p className="mt-1 text-xs text-slate-400">{item.description}</p>
+
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                <div>
+                  <p className="text-xs text-slate-500">Revenue</p>
+                  <p className="mt-1 text-lg font-bold text-emerald-950">—</p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-slate-500">Refunds</p>
+                  <p className="mt-1 text-lg font-bold text-rose-700">—</p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-slate-500">Net</p>
+                  <p className="mt-1 text-lg font-bold text-emerald-700">—</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
