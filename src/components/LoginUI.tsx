@@ -127,6 +127,12 @@ function LoginUI({
 
         <div className="mt-6 border-t border-slate-200 pt-5 text-center">
           <Link
+            className="mb-3 block text-sm font-medium text-emerald-800 hover:text-emerald-950"
+            to="/register"
+          >
+            Create a customer account
+          </Link>
+          <Link
             className="inline-flex items-center gap-2 text-sm text-slate-600 transition hover:text-emerald-800"
             to="/"
           >

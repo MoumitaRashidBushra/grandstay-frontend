@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import AuthApiSetup from "../components/AuthApiSetup";
 import Navbar from "../components/Navbar";
@@ -9,7 +9,6 @@ import ProtectedRoute from "../components/ProtectedRoute";
 const CustomerLayout = lazy(() => import("../layouts/CustomerLayout"));
 const StaffLayout = lazy(() => import("../layouts/StaffLayout"));
 
-// Admin pages.
 const AdminPage = lazy(() => import("../pages/admin/AdminPage"));
 const CategoriesPage = lazy(() => import("../pages/admin/CategoriesPage"));
 const HotelSettingsPage = lazy(
@@ -22,7 +21,6 @@ const StaffManagementPage = lazy(
   () => import("../pages/admin/StaffManagementPage"),
 );
 
-// Customer pages.
 const BookingHistoryPage = lazy(
   () => import("../pages/customer/BookingHistoryPage"),
 );
@@ -35,25 +33,24 @@ const MyReservationsPage = lazy(
 );
 const ProfilePage = lazy(() => import("../pages/customer/ProfilePage"));
 
-// Staff pages.
 const StaffPage = lazy(() => import("../pages/staff/StaffPage"));
 const StaffOperationPage = lazy(
   () => import("../pages/staff/StaffOperationPage"),
 );
+const StaffProfilePage = lazy(() => import("../pages/staff/StaffProfilePage"));
 
-// General pages.
+const ChangePasswordPage = lazy(() => import("../pages/ChangePasswordPage"));
 const HomePage = lazy(() => import("../pages/HomePage"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
+const RegisterPage = lazy(() => import("../pages/RegisterPage"));
 const NoAccessPage = lazy(() => import("../pages/NoAccessPage"));
 const NotFoundPage = lazy(() => import("../pages/NotFoundPage"));
 
 function AppRouter() {
   return (
     <BrowserRouter>
-      {/* Configure authenticated API requests. */}
       <AuthApiSetup />
 
-      {/* Display a loading message while a page chunk is downloading. */}
       <Suspense
         fallback={
           <div className="flex min-h-screen items-center justify-center">
@@ -62,9 +59,9 @@ function AppRouter() {
         }
       >
         <Routes>
-          {/* Public routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/no-access" element={<NoAccessPage />} />
 
           <Route
@@ -79,7 +76,21 @@ function AppRouter() {
             }
           />
 
-          {/* Customer routes */}
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={["ADMIN", "RECEPTIONIST", "CUSTOMER"]}
+                allowDuringPasswordReset
+              />
+            }
+          >
+            <Route path="/change-password" element={<ChangePasswordPage />} />
+            <Route
+              path="/staff/change-password"
+              element={<ChangePasswordPage />}
+            />
+          </Route>
+
           <Route element={<ProtectedRoute allowedRoles={["CUSTOMER"]} />}>
             <Route path="/customer" element={<CustomerLayout />}>
               <Route index element={<CustomerDashboardPage />} />
@@ -90,17 +101,15 @@ function AppRouter() {
             </Route>
           </Route>
 
-          {/* Shared Staff Console: Admin and Receptionist */}
+          {/* Shared staff console from SRS v0.2 (their layout + our account routes). */}
           <Route
             element={
               <ProtectedRoute allowedRoles={["ADMIN", "RECEPTIONIST"]} />
             }
           >
             <Route element={<StaffLayout />}>
-              {/* Receptionist Front Desk */}
               <Route path="/staff" element={<StaffPage />} />
 
-              {/* Shared operational pages */}
               <Route
                 path="/staff/find-booking"
                 element={
@@ -110,7 +119,6 @@ function AppRouter() {
                   />
                 }
               />
-
               <Route
                 path="/staff/arrivals"
                 element={
@@ -120,7 +128,6 @@ function AppRouter() {
                   />
                 }
               />
-
               <Route
                 path="/staff/departures"
                 element={
@@ -130,7 +137,6 @@ function AppRouter() {
                   />
                 }
               />
-
               <Route
                 path="/staff/check-in"
                 element={
@@ -140,7 +146,6 @@ function AppRouter() {
                   />
                 }
               />
-
               <Route
                 path="/staff/check-out"
                 element={
@@ -150,7 +155,6 @@ function AppRouter() {
                   />
                 }
               />
-
               <Route
                 path="/staff/invoices"
                 element={
@@ -160,18 +164,8 @@ function AppRouter() {
                   />
                 }
               />
+              <Route path="/staff/profile" element={<StaffProfilePage />} />
 
-              <Route
-                path="/staff/change-password"
-                element={
-                  <StaffOperationPage
-                    title="Change Password"
-                    description="Update the password for your staff account."
-                  />
-                }
-              />
-
-              {/* Admin-only pages */}
               <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
                 <Route path="/admin" element={<AdminPage />} />
                 <Route
@@ -196,7 +190,11 @@ function AppRouter() {
             </Route>
           </Route>
 
-          {/* Handle unknown routes */}
+          <Route
+            path="/staff/accounts"
+            element={<Navigate to="/admin/staff" replace />}
+          />
+
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>

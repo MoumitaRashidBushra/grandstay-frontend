@@ -13,6 +13,7 @@ import {
   Search,
   Settings,
   Tags,
+  UserRound,
   Users,
   Wrench,
 } from "lucide-react";
@@ -45,6 +46,7 @@ function StaffSidebar({ isOpen, onClose }: StaffSidebarProps) {
     { name: "Check-in", path: "/staff/check-in", icon: LogIn },
     { name: "Check-out", path: "/staff/check-out", icon: LogOut },
     { name: "Invoices", path: "/staff/invoices", icon: FileText },
+    { name: "My profile", path: "/staff/profile", icon: UserRound },
   ];
 
   // Management pages are visible only to Admin.
@@ -53,7 +55,7 @@ function StaffSidebar({ isOpen, onClose }: StaffSidebarProps) {
     { name: "Reservations", path: "/admin/reservations", icon: CalendarDays },
     { name: "Rooms", path: "/admin/rooms", icon: BedDouble },
     { name: "Categories & Prices", path: "/admin/categories", icon: Tags },
-    { name: "Staff Management", path: "/admin/staff", icon: Users },
+    { name: "Accounts", path: "/admin/staff", icon: Users },
     { name: "Hotel Settings", path: "/admin/settings", icon: Settings },
     { name: "Maintenance", path: "/admin/maintenance", icon: Wrench },
     {

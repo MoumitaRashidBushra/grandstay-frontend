@@ -27,6 +27,9 @@ export interface AuthContextType {
 
   // Finish the initial authentication check.
   finishInitialization: () => void;
+
+  // Clear the first-login password requirement after a successful change.
+  markPasswordChanged: () => void;
 }
 
 // Create the authentication context.

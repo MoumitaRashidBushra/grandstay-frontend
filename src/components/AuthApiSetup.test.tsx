@@ -32,6 +32,7 @@ function renderWithAuth(
     updateAccessToken: vi.fn(),
     logout: vi.fn(),
     finishInitialization: vi.fn(),
+    markPasswordChanged: vi.fn(),
   };
 
   return render(

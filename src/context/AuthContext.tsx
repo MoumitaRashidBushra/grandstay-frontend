@@ -101,6 +101,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsInitializing(false);
   }, []);
 
+  const markPasswordChanged = useCallback(() => {
+    setUser((current) =>
+      current ? { ...current, mustResetPw: false } : current,
+    );
+  }, []);
+
   const value: AuthContextType = {
     user,
     accessToken,
@@ -110,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateAccessToken,
     logout,
     finishInitialization,
+    markPasswordChanged,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

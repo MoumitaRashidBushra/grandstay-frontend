@@ -46,7 +46,6 @@ function LoginPage() {
   const redirectState = location.state as LoginRedirectState | null;
   const returnLocation = redirectState?.from;
 
-  // Access the function that saves user information and access token.
   const { loginUser } = useAuth();
 
   const {
@@ -58,7 +57,6 @@ function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  // Convert API failures into the feedback rendered by LoginUI.
   const errorMessage = loginMutation.isError
     ? axios.isAxiosError(loginMutation.error)
       ? !loginMutation.error.response
@@ -78,16 +76,16 @@ function LoginPage() {
 
   const onSubmit = async (data: LoginCredentials) => {
     try {
-      // Send login credentials to the backend.
       const response = await loginMutation.mutateAsync(data);
 
-      // Save user information and access token in React memory.
       loginUser(response);
-
-      // Clear the login form after successful authentication.
       reset();
 
-      // Redirect the user to the dashboard matching their role.
+      if (response.user.mustResetPw) {
+        navigate("/staff/change-password", { replace: true });
+        return;
+      }
+
       switch (response.user.role) {
         case "ADMIN":
           navigate("/admin", { replace: true });

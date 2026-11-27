@@ -25,16 +25,16 @@ export default function Navbar() {
       isActive ? "font-semibold text-emerald-950" : "text-slate-700"
     }`;
 
-  // Show the portal allowed for the authenticated user's role.
+  // One staff console for Admin and Receptionist; customers keep their portal.
   const portalLink = (() => {
     if (!isAuthenticated || !user) return null;
 
     if (user.role === "ADMIN") {
-      return { to: "/admin", label: "Admin portal" };
+      return { to: "/admin", label: "Staff console" };
     }
 
     if (user.role === "RECEPTIONIST") {
-      return { to: "/staff", label: "Staff portal" };
+      return { to: "/staff", label: "Staff console" };
     }
 
     return { to: "/customer", label: "Customer portal" };
@@ -45,7 +45,6 @@ export default function Navbar() {
       aria-label="Main navigation"
       className="fixed left-1/2 top-4 z-50 mx-auto flex w-[calc(100%-2rem)] max-w-330 -translate-x-1/2 flex-wrap items-center justify-between rounded-3xl border border-white/60 bg-white/90 px-5 py-2 shadow-lg backdrop-blur-md sm:px-8 sm:py-2.5"
     >
-      {/* GrandStay logo */}
       <Link
         to="/"
         onClick={closeMobileMenu}
@@ -91,7 +90,9 @@ export default function Navbar() {
           <Link
             to={portalLink.to}
             className={navLinkClass(
-              location.pathname.startsWith(portalLink.to),
+              location.pathname.startsWith(portalLink.to) ||
+                (portalLink.to === "/admin" &&
+                  location.pathname.startsWith("/staff")),
             )}
           >
             {portalLink.label}
