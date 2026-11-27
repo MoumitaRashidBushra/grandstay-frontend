@@ -125,6 +125,32 @@ describe("AuthApiSetup", () => {
     expect(await screen.findByText("/no-access")).toBeInTheDocument();
   });
 
+  it("sends a password-reset 403 to the change-password page", async () => {
+    const adapter: AxiosAdapter = async (config) => {
+      throw new AxiosError("Forbidden", "ERR_BAD_REQUEST", config, undefined, {
+        config,
+        data: {
+          message: "Set a new password before continuing.",
+          code: "PASSWORD_RESET_REQUIRED",
+          statusCode: 403,
+        },
+        headers: new AxiosHeaders(),
+        status: 403,
+        statusText: "Forbidden",
+      });
+    };
+    api.defaults.adapter = adapter;
+    renderWithAuth("/admin");
+
+    await expect(api.get("/admin/staff")).rejects.toMatchObject({
+      response: { status: 403 },
+    });
+
+    expect(
+      await screen.findByText("/staff/change-password"),
+    ).toBeInTheDocument();
+  });
+
   it("does not navigate away for a 403 from the login endpoint", async () => {
     const adapter: AxiosAdapter = async (config) => {
       throw new AxiosError("Forbidden", "ERR_BAD_REQUEST", config, undefined, {

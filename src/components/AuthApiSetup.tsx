@@ -11,6 +11,14 @@ type RetryableRequestConfig = InternalAxiosRequestConfig & {
   _sessionToken?: string | null;
 };
 
+function apiErrorCode(data: unknown): string | null {
+  if (typeof data !== "object" || data === null || !("code" in data)) {
+    return null;
+  }
+
+  return typeof data.code === "string" ? data.code : null;
+}
+
 // Share one refresh request for requests from the same session.
 let refreshPromise: {
   sessionToken: string | null;
@@ -62,7 +70,14 @@ function AuthApiSetup() {
             requestUrl.includes("/auth/logout");
 
           if (!isAuthRequest) {
-            navigate("/no-access", { replace: true });
+            // A temporary password must be changed. That 403 is not a role denial.
+            if (
+              apiErrorCode(error.response.data) === "PASSWORD_RESET_REQUIRED"
+            ) {
+              navigate("/staff/change-password", { replace: true });
+            } else {
+              navigate("/no-access", { replace: true });
+            }
           }
 
           return Promise.reject(error);
