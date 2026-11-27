@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import App from "./App";
@@ -18,14 +19,22 @@ function CurrentUrl() {
 
 describe("App", () => {
   it("renders the GrandStay home page", async () => {
-    // Wrap the app with AuthProvider to provide authentication context.
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+
     render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>,
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </QueryClientProvider>,
     );
 
-    // Wait until the lazy-loaded home page heading appears.
     expect(
       await screen.findByRole("heading", {
         name: /a stay that feels\s*like yours/i,
