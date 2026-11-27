@@ -54,12 +54,59 @@ jobs:
     name: Playwright E2E smoke tests
     runs-on: ubuntu-latest
     needs: lint-build-test
-    timeout-minutes: 20
+    timeout-minutes: 25
+
+    # Temporary PostgreSQL database for this CI run.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: grandstay_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d grandstay_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Environment shared by backend, frontend and E2E steps.
+    env:
+      NODE_ENV: test
+      PORT: 3000
+      DATABASE_URL: postgresql://postgres:password@localhost:5432/grandstay_ci
+      JWT_ACCESS_SECRET: grandstay-ci-only-secret
+      VITE_API_BASE_URL: http://localhost:3000/api/v1
+
+      FRONTEND_URL: http://localhost:5173
+      API_URL: http://localhost:3000/api/v1
+
+      # Accounts created by backend prisma/seed.js
+      ADMIN_EMAIL: admin@grandstay.example
+      ADMIN_PASSWORD: Password@123
+
+      RECEPTIONIST_EMAIL: reception1@grandstay.example
+      RECEPTIONIST_PASSWORD: Password@123
+
+      CUSTOMER_EMAIL: rahim.uddin@example.com
+      CUSTOMER_PASSWORD: Password@123
 
     steps:
-      - name: Checkout repository
+      # Checkout frontend repository.
+      - name: Checkout frontend repository
         uses: actions/checkout@v5
 
+      # Checkout backend repository into ./backend.
+      - name: Checkout backend repository
+        uses: actions/checkout@v5
+        with:
+          repository: MoumitaRashidBushra/grandstay-backend
+          ref: master
+          path: backend
+
+      # Install Node.js.
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
@@ -68,76 +115,69 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             e2e/package-lock.json
+            backend/package-lock.json
 
+      # Install frontend dependencies.
       - name: Install frontend dependencies
         run: npm ci
 
+      # Install backend dependencies.
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      # Install Playwright dependencies.
       - name: Install E2E dependencies
         working-directory: e2e
         run: npm ci
 
-      - name: Validate staging configuration
-        env:
-          STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
-          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-          RECEPTIONIST_EMAIL: ${{ secrets.RECEPTIONIST_EMAIL }}
-          RECEPTIONIST_PASSWORD: ${{ secrets.RECEPTIONIST_PASSWORD }}
-          CUSTOMER_EMAIL: ${{ secrets.CUSTOMER_EMAIL }}
-          CUSTOMER_PASSWORD: ${{ secrets.CUSTOMER_PASSWORD }}
+      # Generate Prisma client.
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate
+
+      # Apply all committed migrations.
+      - name: Apply database migrations
+        working-directory: backend
+        run: npx prisma migrate deploy
+
+      # Insert deterministic test data.
+      - name: Seed database
+        working-directory: backend
+        run: npx prisma db seed
+
+      # Start NestJS backend.
+      - name: Start backend
+        working-directory: backend
         run: |
-          for name in STAGING_API_URL ADMIN_EMAIL ADMIN_PASSWORD \
-            RECEPTIONIST_EMAIL RECEPTIONIST_PASSWORD \
-            CUSTOMER_EMAIL CUSTOMER_PASSWORD
-          do
-            if [ -z "${!name}" ]; then
-              echo "::error::Required GitHub secret $name is missing."
-              exit 1
+          nohup npx nest start --watch > backend.log 2>&1 < /dev/null &
+          echo $! > backend.pid
+
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3000/api/v1/ > /dev/null; then
+              echo "Backend is ready."
+              exit 0
             fi
+
+            sleep 2
           done
 
-      - name: Build frontend for staging API
-        env:
-          VITE_API_BASE_URL: ${{ secrets.STAGING_API_URL }}
-        run: npm run build
+          echo "::error::Backend did not start."
+          cat backend.log
+          exit 1
 
+      # Install Chromium and its Linux dependencies.
       - name: Install Playwright Chromium
         working-directory: e2e
         run: npx playwright install --with-deps chromium
 
-      - name: Start frontend and run smoke tests
-        env:
-          TEST_ENV: staging
-          FRONTEND_URL: http://localhost:5173
-          API_URL: ${{ secrets.STAGING_API_URL }}
-          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-          RECEPTIONIST_EMAIL: ${{ secrets.RECEPTIONIST_EMAIL }}
-          RECEPTIONIST_PASSWORD: ${{ secrets.RECEPTIONIST_PASSWORD }}
-          CUSTOMER_EMAIL: ${{ secrets.CUSTOMER_EMAIL }}
-          CUSTOMER_PASSWORD: ${{ secrets.CUSTOMER_PASSWORD }}
-        run: |
-          npm run preview -- --host localhost --port 5173 --strictPort > preview.log 2>&1 &
-          PREVIEW_PID=$!
+      # Run smoke tests.
+      # Playwright config starts the frontend automatically in CI.
+      - name: Run Playwright smoke tests
+        working-directory: e2e
+        run: npm run test:local:ui -- --grep "@smoke"
 
-          for attempt in $(seq 1 30); do
-            if curl --fail --silent http://localhost:5173/ > /dev/null; then
-              echo "Frontend preview is ready."
-              break
-            fi
-            sleep 2
-          done
-
-          if ! curl --fail --silent http://localhost:5173/ > /dev/null; then
-            echo "::error::Frontend preview did not start."
-            cat preview.log
-            kill "$PREVIEW_PID" || true
-            exit 1
-          fi
-
-          cd e2e
-          npm run test:staging -- --project=chromium
-
+      # Save reports even if a test fails.
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
